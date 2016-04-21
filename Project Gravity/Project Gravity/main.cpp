@@ -28,6 +28,15 @@ struct Point
 	glm::vec2 velocity = glm::vec2(0.0f, 0.0f);
 };
 
+double wheelpos;
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	wheelpos = yoffset;
+
+	//std::cout << yoffset << std::endl;
+}
+
 int main() {
 
 	glfwInit();
@@ -222,17 +231,18 @@ int main() {
 
 	GLfloat view_angle = 0.0f;
 
-	while (!glfwWindowShouldClose(window)) {
 
+	glfwSetScrollCallback(window, scroll_callback);
+
+	while (!glfwWindowShouldClose(window)) {
+		/*
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 			speed = 5.0f * nopause;
 		else
 			speed = 0.2f * nopause;
-
+			*/
 		if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
 			!nopause;
-
-
 
 
 		double xpos_1;
@@ -324,6 +334,14 @@ int main() {
 			scale *= 0.98f;
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
+
+
+		if (wheelpos > 0)
+			speed *= 1/((wheelpos / 10) + 1);
+		else if (wheelpos < 0)
+			speed *= -wheelpos/10 + 1;
+
+		wheelpos = 0;
 
 
 
