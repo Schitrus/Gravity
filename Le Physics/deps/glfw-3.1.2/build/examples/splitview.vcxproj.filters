@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\Kalle\Documents\Visual Studio 2015\Projects\Le Physics\Le Physics\deps\glfw-3.1.2\examples\splitview.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Kalle\Documents\Visual Studio 2015\Projects\Le Physics\Le Physics\deps\glfw-3.1.2\examples\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{96DA89E3-8143-30FC-A98F-BA472F45560C}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

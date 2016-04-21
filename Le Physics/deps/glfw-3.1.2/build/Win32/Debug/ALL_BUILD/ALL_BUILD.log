@@ -1,0 +1,10 @@
+﻿Build started 22-Feb-16 13:45:33.
+     1>Project "C:\Users\Kalle\Documents\Visual Studio 2015\Projects\Le Physics\Le Physics\deps\glfw-3.1.2\build\ALL_BUILD.vcxproj" on node 3 (Build target(s)).
+     1>CustomBuild:
+         Building Custom Rule C:/Users/Kalle/Documents/Visual Studio 2015/Projects/Le Physics/Le Physics/deps/glfw-3.1.2/CMakeLists.txt
+         CMake does not need to re-run because C:\Users\Kalle\Documents\Visual Studio 2015\Projects\Le Physics\Le Physics\deps\glfw-3.1.2\build\CMakeFiles\generate.stamp is up-to-date.
+     1>Done Building Project "C:\Users\Kalle\Documents\Visual Studio 2015\Projects\Le Physics\Le Physics\deps\glfw-3.1.2\build\ALL_BUILD.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.21
