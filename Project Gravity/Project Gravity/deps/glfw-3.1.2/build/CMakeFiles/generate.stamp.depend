@@ -1,0 +1,41 @@
+# CMake generation dependency list for this directory.
+C:/Users/Kalle/Documents/Visual Studio 2015/Projects/Le Physics/Le Physics/deps/glfw-3.1.2/CMakeLists.txt
+C:/Users/Kalle/Documents/Visual Studio 2015/Projects/Le Physics/Le Physics/deps/glfw-3.1.2/build/CMakeFiles/3.5.0-rc3/CMakeSystem.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/CMakeSystemSpecificInitialize.cmake
+C:/Users/Kalle/Documents/Visual Studio 2015/Projects/Le Physics/Le Physics/deps/glfw-3.1.2/build/CMakeFiles/3.5.0-rc3/CMakeCCompiler.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/CMakeSystemSpecificInformation.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/CMakeGenericSystem.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/Platform/Windows.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/Platform/WindowsPaths.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/CMakeCInformation.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/CMakeLanguageInformation.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/Platform/Windows-MSVC-C.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/Platform/Windows-MSVC.cmake
+C:/Users/Kalle/Documents/Visual Studio 2015/Projects/Le Physics/Le Physics/deps/glfw-3.1.2/build/CMakeFiles/3.5.0-rc3/CMakeRCCompiler.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/CMakeRCInformation.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/CMakeCommonLanguageInclude.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/FindOpenGL.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/FindPackageHandleStandardArgs.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/FindPackageMessage.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/CMakeParseArguments.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/FindThreads.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/CheckLibraryExists.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/CheckSymbolExists.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/CheckIncludeFile.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/FindPackageHandleStandardArgs.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/FindPackageMessage.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/CMakeParseArguments.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/FindDoxygen.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/FindPackageHandleStandardArgs.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/FindPackageMessage.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/CMakeParseArguments.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/CMakePackageConfigHelpers.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/CMakeParseArguments.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/WriteBasicConfigVersionFile.cmake
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/CMakeParseArguments.cmake
+C:/Users/Kalle/Documents/Visual Studio 2015/Projects/Le Physics/Le Physics/deps/glfw-3.1.2/src/glfw3Config.cmake.in
+C:/Program Files (x86)/CMake/share/cmake-3.5/Modules/BasicConfigVersion-SameMajorVersion.cmake.in
+C:/Users/Kalle/Documents/Visual Studio 2015/Projects/Le Physics/Le Physics/deps/glfw-3.1.2/docs/Doxyfile.in
+C:/Users/Kalle/Documents/Visual Studio 2015/Projects/Le Physics/Le Physics/deps/glfw-3.1.2/src/glfw_config.h.in
+C:/Users/Kalle/Documents/Visual Studio 2015/Projects/Le Physics/Le Physics/deps/glfw-3.1.2/src/glfw3.pc.in
+C:/Users/Kalle/Documents/Visual Studio 2015/Projects/Le Physics/Le Physics/deps/glfw-3.1.2/cmake_uninstall.cmake.in

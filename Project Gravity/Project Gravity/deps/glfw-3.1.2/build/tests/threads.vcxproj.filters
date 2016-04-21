@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\Kalle\Documents\Visual Studio 2015\Projects\Le Physics\Le Physics\deps\glfw-3.1.2\tests\threads.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Kalle\Documents\Visual Studio 2015\Projects\Le Physics\Le Physics\deps\glfw-3.1.2\deps\tinycthread.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Users\Kalle\Documents\Visual Studio 2015\Projects\Le Physics\Le Physics\deps\glfw-3.1.2\deps\tinycthread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Kalle\Documents\Visual Studio 2015\Projects\Le Physics\Le Physics\deps\glfw-3.1.2\tests\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{96DA89E3-8143-30FC-A98F-BA472F45560C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{E009A5B8-FFF5-30E2-80CD-CC0E7BFC065E}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
