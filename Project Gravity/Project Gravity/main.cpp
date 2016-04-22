@@ -45,9 +45,9 @@ int main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-	glfwWindowHint(GLFW_SAMPLES, 1);
+	glfwWindowHint(GLFW_SAMPLES, 0);
 
-	window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL", nullptr, nullptr);
+	window = glfwCreateWindow(WIDTH, HEIGHT, "Project Gravity", nullptr, nullptr);
 
 	glfwMakeContextCurrent(window);
 
@@ -150,7 +150,7 @@ int main() {
 
 		objects.push_back(Point());
 
-		objects[i].mass = 0.001f;
+		objects[i].mass = 0.1f;
 		//objects[i].mass = ((float)(rand() % 2000) / 1000) + 0.01f;
 		objects[i].position = glm::vec3(((float)(rand() % 200) / (100 / ((float)WIDTH / HEIGHT)) - ((float)WIDTH / HEIGHT)), ((float)(rand() % 200) / 100 - 1), 1.0f);
 		//objects[i].velocity = glm::vec2(((float)(rand() % 2000) / 10000) - 0.1f, ((float)(rand() % 2000) / 10000) - 0.1f);
@@ -214,11 +214,12 @@ int main() {
 	glLineWidth(lengthSize);
 
 	float speed = 0.1f;
+	
+	float pausespeed = 0.0f;
 
+	bool pause = false;
 
 	//glColorMask(1, 1, 1, 0);
-
-	bool nopause = true;
 
 	bool oneClick = false;
 
@@ -235,14 +236,6 @@ int main() {
 	glfwSetScrollCallback(window, scroll_callback);
 
 	while (!glfwWindowShouldClose(window)) {
-		/*
-		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-			speed = 5.0f * nopause;
-		else
-			speed = 0.2f * nopause;
-			*/
-		if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
-			!nopause;
 
 
 		double xpos_1;
@@ -292,8 +285,8 @@ int main() {
 				objects[objects.size() - 1].position.x = (((float)WIDTH / HEIGHT) * (2 * xpos_1 / WIDTH - 1) / scale - offset_x);
 				objects[objects.size() - 1].position.y = (1 - (2 * ypos_1 / HEIGHT)) / scale - offset_y;
 
-				objects[objects.size() - 1].velocity.x = (xpos_2 - xpos_1) * deltatime / (10 * objects[objects.size() - 1].mass);
-				objects[objects.size() - 1].velocity.y = (ypos_1 - ypos_2) * deltatime / (10 * objects[objects.size() - 1].mass);
+				objects[objects.size() - 1].velocity.x = (xpos_2 - xpos_1) * deltatime * speed / (10 * objects[objects.size() - 1].mass);
+				objects[objects.size() - 1].velocity.y = (ypos_1 - ypos_2) * deltatime * speed / (10 * objects[objects.size() - 1].mass);
 
 				numPoints++;
 				oneClick = false;
@@ -334,19 +327,56 @@ int main() {
 			scale *= 0.98f;
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
+		
+		if (wheelpos < 0) {
+			wheelpos = 1 - (0.03f * (speed+2));
+		}
+		else if (wheelpos > 0) {
+			wheelpos = (0.04f * 1 / speed) + 1;
+		}
 
 
-		if (wheelpos > 0)
-			speed *= 1/((wheelpos / 10) + 1);
-		else if (wheelpos < 0)
-			speed *= -wheelpos/10 + 1;
+
+		if(wheelpos != 0 && speed > 0)
+			speed *= wheelpos;
+
+		//std::cout << speed << "\t" << wheelpos << std::endl;
 
 		wheelpos = 0;
 
+		if ((glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) && !pause) {
+			//std::cout << "pause: " << pause << std::endl;
+
+  			std::swap(speed, pausespeed);
+			pause = true;
+			
+		}
+		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE && pause) {
+			pause = false;
+
+		}
+
+		ball[0] =  0.75f;
+		ball[1] = -0.75f;
+
+		glPointSize(5);
+
+		glBindVertexArray(VAO_ball);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO_ball);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(ball), ball, GL_STATIC_DRAW);
+
+		if(speed < 2)
+			glUniform4fv(Color, 1, &glm::vec4(0.1f, speed, speed-1, 0.5f)[0]);
+		else if (speed < 4)
+			glUniform4fv(Color, 1, &glm::vec4(speed-2.9f, 4-speed, 1.0f, 0.5f)[0]);
+		else
+			glUniform4fv(Color, 1, &glm::vec4(1.0f, 0.0f-4.5f+speed, 1.0f, 0.5f-4+speed)[0]);
 
 
+		glDrawArrays(GL_POINTS, 0, 1);
 
-		stdtime = speed * glfwGetTime();
+
+		stdtime = glfwGetTime();
 		glfwPollEvents();
 
 		//glClear(GL_COLOR_BUFFER_BIT);
@@ -431,8 +461,8 @@ int main() {
 				}
 			}
 
-			objects[i].mass += objects[i].massgain * deltatime * 7;
-			objects[i].massgain *= 1 - deltatime * 4;
+			objects[i].mass += objects[i].massgain * deltatime * speed * 7;
+			objects[i].massgain *= 1 - deltatime * speed * 4;
 
 			if (objects[i].massgain < 0.1f)
 				objects[i].massgain = 0;
@@ -440,9 +470,9 @@ int main() {
 			acceleration_x = force_x / objects[i].mass;
 			acceleration_y = force_y / objects[i].mass;
 
-			objects[i].velocity.x += acceleration_x * 2 * deltatime;
+			objects[i].velocity.x += acceleration_x * 2 * deltatime * speed;
 			//objects[i].velocity.x *= 0.999f;
-			objects[i].velocity.y += acceleration_y * 2 * deltatime;
+			objects[i].velocity.y += acceleration_y * 2 * deltatime * speed;
 			//objects[i].velocity.y *= 0.999f;
 			/*
 			if (objects[i].position.x + (objects[i].mass + 1) / (WIDTH) > 1.0f * (float)WIDTH/HEIGHT - objects[0].position.x) {
@@ -469,11 +499,24 @@ int main() {
 				objects[i].velocity.y = -objects[i].velocity.y * 0.95f;
 			}
 			*/
-			objects[i].position.x += objects[i].velocity.x * deltatime;
-			objects[i].position.y += objects[i].velocity.y * deltatime;
+			objects[i].position.x += objects[i].velocity.x * deltatime * speed;
+			objects[i].position.y += objects[i].velocity.y * deltatime * speed;
 
 			//ball[0] = (objects[i].position.x - objects[0].position.x)* ((float)HEIGHT/WIDTH);
 			//ball[1] = objects[i].position.y - objects[0].position.y;
+			/*
+			GLfloat r = sqrt(pow(objects[i].position.x, 2) + pow(objects[i].position.y, 2));
+			GLfloat angle = (objects[i].position.y / objects[i].position.x);
+			GLfloat x = cos(view_angle + angle) * r;
+			GLfloat y = sin(view_angle + angle) * r;
+
+			GLfloat a_offset_x = cos(view_angle) * sqrt(pow(offset_x, 2) + pow(offset_y, 2));
+			GLfloat a_offset_y = sin(view_angle) * sqrt(pow(offset_x, 2) + pow(offset_y, 2));
+
+
+			ball[0] = scale * (x + a_offset_x) * ((float)HEIGHT / WIDTH);
+			ball[1] = scale * (y + a_offset_y);
+			*/
 
 			ball[0] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
 			ball[1] = scale * (objects[i].position.y + offset_y);
@@ -515,8 +558,13 @@ int main() {
 		glDrawArrays(GL_POINTS, 0, 1);
 
 		glfwSwapBuffers(window);
-		deltatime = speed * glfwGetTime() - stdtime;
+		deltatime = glfwGetTime() - stdtime;
 
+
+		//if(!(counter%5))
+			//std::cout << "FPS:\t" << 1 / deltatime << std::endl;
+
+		counter++;
 
 	}
 
