@@ -45,7 +45,7 @@ int main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-	glfwWindowHint(GLFW_SAMPLES, 0);
+	glfwWindowHint(GLFW_SAMPLES, 2);
 
 	window = glfwCreateWindow(WIDTH, HEIGHT, "Project Gravity", nullptr, nullptr);
 
@@ -56,13 +56,13 @@ int main() {
 
 	glViewport(0, 0, WIDTH, HEIGHT);
 
-
+	/*
 	GLfloat ball[3] = {
 		0.0f, 0.0f, 0.0f
 	};
+	*/
 
-
-	/*
+	
 	GLfloat ball[3 * 3 * 8] = {
 		
 		 1.0f, 0.0f, 0.0f,
@@ -106,7 +106,7 @@ int main() {
 
 
 	};
-	*/
+	
 	//Ball
 
 	GLuint VAO_ball;
@@ -232,6 +232,17 @@ int main() {
 
 	GLfloat view_angle = 0.0f;
 
+	enum DisplayColor
+	{
+		DisplayMass,
+		DisplayVelocity,
+		DisplayAcceleration,
+	};
+
+	bool ColorHit = false;
+
+	int dColor = DisplayMass;
+
 
 	glfwSetScrollCallback(window, scroll_callback);
 
@@ -293,6 +304,16 @@ int main() {
 			}
 
 		}
+
+		if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS && !ColorHit) {
+			dColor++;
+			if (dColor >= sizeof(DisplayColor))
+				dColor = 0;
+
+			ColorHit = true;
+		}
+		else if (glfwGetKey(window, GLFW_KEY_U) == GLFW_RELEASE && ColorHit)
+			ColorHit = false;
 
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 			offset_x += 2 * deltatime / scale;
@@ -365,7 +386,9 @@ int main() {
 		glBindBuffer(GL_ARRAY_BUFFER, VBO_ball);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(ball), ball, GL_STATIC_DRAW);
 
-		if(speed < 2)
+		if (speed == 0)
+			glUniform4fv(Color, 1, &glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)[0]);
+		else if(speed < 2)
 			glUniform4fv(Color, 1, &glm::vec4(0.1f, speed, speed-1, 0.5f)[0]);
 		else if (speed < 4)
 			glUniform4fv(Color, 1, &glm::vec4(speed-2.9f, 4-speed, 1.0f, 0.5f)[0]);
@@ -417,8 +440,8 @@ int main() {
 
 					force_y += force * distance_y / distance;
 
-					if (abs(distance_x) < ((float)WIDTH / HEIGHT * objects[i].mass + 1 + objects[j].mass + 1) / WIDTH && abs(distance_y) <= (objects[i].mass + 1 + objects[j].mass + 1) / HEIGHT) {
-
+					//if (abs(distance_x) < ((float)WIDTH / HEIGHT * objects[i].mass + 1 + objects[j].mass + 1) / WIDTH && abs(distance_y) <= (objects[i].mass + 1 + objects[j].mass + 1) / HEIGHT) {
+					if (distance < (float)WIDTH/(float)HEIGHT * (objects[i].mass + objects[j].mass) / (float)WIDTH){
 						int k = i;
 						int l = j;
 						if (objects[i].mass <= objects[j].mass) {
@@ -431,9 +454,13 @@ int main() {
 							j = 0;
 						}
 
-
+						objects[k].velocity.x += objects[l].velocity.x * objects[l].mass / objects[k].mass;
+						objects[k].velocity.y += objects[l].velocity.y * objects[l].mass / objects[k].mass;
 
 						objects[k].massgain += objects[l].mass;
+
+						objects[k].position.x -= (objects[l].mass / objects[k].mass) * (objects[k].position.x - objects[l].position.x) / 2;
+						objects[k].position.y -= (objects[l].mass / objects[k].mass) * (objects[k].position.y - objects[l].position.y) / 2;
 
 						//objects[k].position.x += distance_x;
 						//objects[k].position.y += distance_y;
@@ -518,8 +545,96 @@ int main() {
 			ball[1] = scale * (y + a_offset_y);
 			*/
 
-			ball[0] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+
+			//Övre Höger
+
+			ball[0] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
 			ball[1] = scale * (objects[i].position.y + offset_y);
+				
+			ball[3] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + 0.7f * (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
+			ball[4] = scale * (objects[i].position.y + offset_y) + 0.7f * (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+
+			ball[6] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+			ball[7] = scale * (objects[i].position.y + offset_y);
+
+
+			ball[9] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+			ball[10] = scale * (objects[i].position.y + offset_y) + (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+
+			ball[12] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + 0.7f * (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
+			ball[13] = scale * (objects[i].position.y + offset_y) + 0.7f * (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+
+			ball[15] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+			ball[16] = scale * (objects[i].position.y + offset_y);
+
+
+			//Övre Vänster
+
+			ball[18] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+			ball[19] = scale * (objects[i].position.y + offset_y) + (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+
+			ball[21] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - 0.7f * (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
+			ball[22] = scale * (objects[i].position.y + offset_y) + 0.7f * (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+
+			ball[24] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+			ball[25] = scale * (objects[i].position.y + offset_y);
+
+
+			ball[27] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
+			ball[28] = scale * (objects[i].position.y + offset_y);
+
+			ball[30] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - 0.7f * (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
+			ball[31] = scale * (objects[i].position.y + offset_y) + 0.7f * (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+
+			ball[33] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+			ball[34] = scale * (objects[i].position.y + offset_y);
+
+
+			//Undre Vänster
+
+			ball[36] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
+			ball[37] = scale * (objects[i].position.y + offset_y);
+
+			ball[39] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - 0.7f * (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
+			ball[40] = scale * (objects[i].position.y + offset_y) - 0.7f * (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+
+			ball[42] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+			ball[43] = scale * (objects[i].position.y + offset_y);
+
+
+			ball[45] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+			ball[46] = scale * (objects[i].position.y + offset_y) - (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+
+			ball[48] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - 0.7f * (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
+			ball[49] = scale * (objects[i].position.y + offset_y) - 0.7f * (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+
+			ball[51] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+			ball[52] = scale * (objects[i].position.y + offset_y);
+
+
+			//Undre Höger
+
+			ball[54] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+			ball[55] = scale * (objects[i].position.y + offset_y) - (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+
+			ball[57] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + 0.7f * (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
+			ball[58] = scale * (objects[i].position.y + offset_y) - 0.7f * (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+
+			ball[60] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+			ball[61] = scale * (objects[i].position.y + offset_y);
+
+
+			ball[63] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
+			ball[64] = scale * (objects[i].position.y + offset_y);
+
+			ball[66] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + 0.7f * (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
+			ball[67] = scale * (objects[i].position.y + offset_y) - 0.7f * (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+
+			ball[69] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+			ball[70] = scale * (objects[i].position.y + offset_y);
+			
+			//ball[0] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+			//ball[1] = scale * (objects[i].position.y + offset_y);
 
 			glPointSize(scale * objects[i].mass + 2.0f);
 
@@ -527,14 +642,48 @@ int main() {
 			glBindBuffer(GL_ARRAY_BUFFER, VBO_ball);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(ball), ball, GL_STATIC_DRAW);
 
-			glUniform4fv(Color, 1, &glm::vec4(
-				5 * sqrt(pow(objects[i].velocity.x, 2) + pow(objects[i].velocity.y, 2)),
-				-0.8f + 5 * sqrt(pow(objects[i].velocity.x, 2) + pow(objects[i].velocity.y, 2)),
-				1.0f - 5 * sqrt(pow(objects[i].velocity.x, 2) + pow(objects[i].velocity.y, 2)),
+
+			switch (dColor)
+			{
+			case DisplayMass:
+				glUniform4fv(Color, 1, &glm::vec4(
+				0.3f + objects[i].mass * 0.75f,
+				0.1f + objects[i].mass * 0.03f,
+				0.0f + objects[i].mass * 0.2f - pow(objects[i].mass, 2),
 				1.0f
 				)[0]);
 
-			glDrawArrays(GL_POINTS, 0, 1);
+				break;
+
+			case DisplayVelocity:
+				glUniform4fv(Color, 1, &glm::vec4(
+					5 * sqrt(pow(objects[i].velocity.x, 2) + pow(objects[i].velocity.y, 2)),
+					-0.8f + 5 * sqrt(pow(objects[i].velocity.x, 2) + pow(objects[i].velocity.y, 2)),
+					1.0f - 5 * sqrt(pow(objects[i].velocity.x, 2) + pow(objects[i].velocity.y, 2)),
+					1.0f
+					)[0]);
+
+				break;
+
+			case DisplayAcceleration:
+				glUniform4fv(Color, 1, &glm::vec4(
+					0.5f + sqrt(pow(acceleration_x, 2) + pow(acceleration_y, 2)),
+					0.1f + 20 * sqrt(pow(acceleration_x, 2) + pow(acceleration_y, 2)),
+					0.5f + 0.5f * sqrt(pow(acceleration_x, 2) + pow(acceleration_y, 2)),
+					1.0f
+					)[0]);
+
+				break;
+
+			default:
+
+				glUniform4fv(Color, 1, &glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)[0]);
+
+				break;
+			}
+
+
+			glDrawArrays(GL_TRIANGLES, 0, 3*8);
 
 		}
 
