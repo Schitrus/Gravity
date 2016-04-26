@@ -22,8 +22,13 @@ const GLuint HEIGHT = 720;
 
 struct Point
 {
-	GLfloat mass;
-	GLfloat massgain = 0;
+	GLdouble mass;
+	GLdouble massgain = 0;
+
+	GLdouble density;
+
+	GLdouble radius;
+
 	glm::vec3 position;
 	glm::vec2 velocity = glm::vec2(0.0f, 0.0f);
 };
@@ -56,11 +61,9 @@ int main() {
 
 	glViewport(0, 0, WIDTH, HEIGHT);
 
-	/*
-	GLfloat ball[3] = {
-		0.0f, 0.0f, 0.0f
-	};
-	*/
+
+	//Fps cap, 0 = no cap
+	glfwSwapInterval(0);
 
 	
 	GLfloat ball[3 * 3 * 8] = {
@@ -140,60 +143,112 @@ int main() {
 
 	GLfloat deltatime = 0.0f;
 
+	GLfloat frequenstime = 0.0f;
+
 	GLuint numPoints = 190;
 
 	std::vector<Point> objects;
 
 	srand(time(NULL));
+	
+	//SUN
+	objects.push_back(Point());
+	objects[0].mass = 1.98855 * pow(10, 30);
+	objects[0].position = glm::vec3(
+		0.0f, 
+		0.0f, 
+		0.0f);
+	objects[0].radius = 6.957 * pow(10, 8);
+	objects[0].velocity = glm::vec2(
+		0.0f,
+		0.0f);
 
-	for (int i = 0; i < numPoints; i++) {
+	//MERCURY
+	objects.push_back(Point());
+	objects[1].mass = 3.3011 * pow(10, 23);
+	objects[1].position = glm::vec3(
+		4.60012 * pow(10, 10), 
+		0.0f, 
+		0.0f);
+	objects[1].radius = 2.4397 * pow(10, 6);
+	objects[1].velocity = glm::vec2(
+		0.0f,
+		5.898 * pow(10, 4));
 
-		objects.push_back(Point());
+	//VENUS
+	objects.push_back(Point());
+	objects[2].mass = 4.8675 * pow(10, 24);
+	objects[2].position = glm::vec3(
+		1.0748 * pow(10, 11),
+		0.0f,
+		0.0f);
+	objects[2].radius = 6.0518 * pow(10, 6);
+	objects[2].velocity = glm::vec2(
+		0.0f,
+		3.526 * pow(10, 4));
+
+	//EARTH
+	objects.push_back(Point());
+	objects[3].mass = 5.9723 * pow(10, 24);
+	objects[3].position = glm::vec3(
+		1.4709 * pow(10, 11),
+		0.0f,
+		0.0f);
+	objects[3].radius = 6.378137 * pow(10, 6);
+	objects[3].velocity = glm::vec2(
+		0.0f,
+		3.029 * pow(10, 4));
+
+	//EARTH::MOON
+	objects.push_back(Point());
+	objects[4].mass = 7.346 * pow(10, 22);
+	objects[4].position = glm::vec3(
+		1.4709 * pow(10, 11) + 3.633 * pow(10, 8),
+		0.0f,
+		0.0f);
+	objects[4].radius = 1.7381 * pow(10, 6);
+	objects[4].velocity = glm::vec2(
+		0.0f,
+		3.029 * pow(10, 4) + 1.076 * pow(10, 3));
+
+	//MARS
+	objects.push_back(Point());
+	objects[5].mass = 6.4171 * pow(10, 23);
+	objects[5].position = glm::vec3(
+		2.0662 * pow(10, 11),
+		0.0f,
+		0.0f);
+	objects[5].radius = 3.3962 * pow(10, 6);
+	objects[5].velocity = glm::vec2(
+		0.0f,
+		2.65 * pow(10, 4));
+
+	//MARS::PHOBOS
+	objects.push_back(Point());
+	objects[6].mass = 1.06 * pow(10, 16);
+	objects[6].position = glm::vec3(
+		2.0662 * pow(10, 11) + 9.378 * pow(10, 6),
+		0.0f,
+		0.0f);
+	objects[6].radius = 1.11 * pow(10, 4);
+	objects[6].velocity = glm::vec2(
+		0.0f,
+		2.65 * pow(10, 4) + 2.1385 * pow(10, 3));
+
+	//MARS::DEIMOS
+	objects.push_back(Point());
+	objects[7].mass = 2.4 * pow(10, 15);
+	objects[7].position = glm::vec3(
+		2.0662 * pow(10, 11) + 2.3459 * pow(10, 7),
+		0.0f,
+		0.0f);
+	objects[7].radius = 7.8 * pow(10, 3);
+	objects[7].velocity = glm::vec2(
+		0.0f,
+		2.65 * pow(10, 4) + 1.3513 * pow(10, 3));
 		
-		float tmpmass = ((float)(rand() % 10000) / 10000);
-		objects[i].mass = pow(tmpmass + 0.125, 7) - 0.5 * tmpmass + 0.25;
-		//objects[i].mass = ((float)(rand() % 2000) / 1000) + 0.01f;
-		objects[i].position = glm::vec3(((float)(rand() % 200) / (100 / ((float)WIDTH / HEIGHT)) - ((float)WIDTH / HEIGHT)), ((float)(rand() % 200) / 100 - 1), 1.0f);
-		//objects[i].velocity = glm::vec2(((float)(rand() % 2000) / 10000) - 0.1f, ((float)(rand() % 2000) / 10000) - 0.1f);
+	GLfloat Gravity = 6.6743 * pow(10, -11);
 
-	}
-
-
-
-
-	GLfloat Gravity = 6.67 * pow(10, -5);
-	/*
-	objects[0].mass = 42.0f;
-	objects[0].position = glm::vec3(0.0f, 0.0f, 1.0f);
-
-	objects[1].mass = 0.1f;
-	objects[1].position = glm::vec3(0.2f, 0.0f, 1.0f);
-	objects[1].velocity.y = sqrt(2 * Gravity * objects[0].mass / 0.2f);
-
-	objects[2].mass = 0.001f;
-	objects[2].position = glm::vec3(0.25f, 0.0f, 1.0f);
-	objects[2].velocity.y = sqrt(2 * Gravity * objects[0].mass / 0.25f) + sqrt(2 * Gravity * objects[1].mass / 0.05f);
-
-	objects[3].mass = 0.8f;
-	objects[3].position = glm::vec3(0.5f, 0.0f, 1.0f);
-	objects[3].velocity.y = sqrt(2 * Gravity * objects[0].mass / 0.7f);
-		
-	objects[4].mass = 0.02f;
-	objects[4].position = glm::vec3(0.55f, 0.0f, 1.0f);
-	objects[4].velocity.y = sqrt(2 * Gravity * objects[0].mass / 0.40f);
-
-	objects[5].mass = 0.01f;
-	objects[5].position = glm::vec3(0.0f,-0.85f, 1.0f);
-	objects[5].velocity.x = -sqrt(2 * Gravity * objects[0].mass / 0.86f);
-
-	objects[6].mass = 0.03f;
-	objects[6].position = glm::vec3(0.03f,-0.47f, 1.0f);
-	objects[6].velocity.x = sqrt(2 * Gravity * objects[0].mass / 0.47f);
-
-	objects[7].mass = 0.05f;
-	objects[7].position = glm::vec3(-0.09f,-0.61f, 1.0f);
-	objects[7].velocity.x = -sqrt(2 * Gravity * objects[0].mass / 0.65f);
-	*/
 	//Point settings
 
 	GLuint pointSize = 3.0f;
@@ -226,10 +281,10 @@ int main() {
 
 	GLuint counter = 0;
 
-	GLfloat offset_x = 0.0f;
-	GLfloat offset_y = 0.0f;
+	GLdouble offset_x = 0.0f;
+	GLdouble offset_y = 0.0f;
 
-	GLfloat scale = 1.0f;
+	GLdouble scale = pow(10, -11);
 
 	GLfloat view_angle = 0.0f;
 
@@ -319,36 +374,36 @@ int main() {
 			ColorHit = false;
 
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-			offset_x += deltatime / scale;
+			offset_x += frequenstime / scale;
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-			offset_x -= deltatime / scale;
+			offset_x -= frequenstime / scale;
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-			offset_y -= deltatime / scale;
+			offset_y -= frequenstime / scale;
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-			offset_y += deltatime / scale;
+			offset_y += frequenstime / scale;
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-			view_angle -= deltatime;
+			view_angle -= frequenstime;
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-			view_angle += deltatime;
+			view_angle += frequenstime;
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
-			scale *= 1.02f;
+			scale *= 1 + frequenstime;
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 		if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
-			scale *= 0.98f;
+			scale *= 1 - frequenstime;
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 		
@@ -442,17 +497,12 @@ int main() {
 
 					force = Gravity * (objects[i].mass * objects[j].mass) / (distance * distance);
 
-					//if (force > 10) {
-					//	std::cout << "Big" << std::endl;
-					//}
-
 					force_x += force * distance_x / distance;
-
 					force_y += force * distance_y / distance;
+					/*
+					if (distance < (double)(objects[i].radius + objects[j].radius) || ((force / objects[i].mass) * (sqrt(pow(objects[i].velocity.x, 2) + pow(objects[i].velocity.y, 2)) + deltatime * speed) * deltatime * speed) > distance){
 
-					//std::cout << "this: " << (force / objects[i].mass) * 2 * pow(deltatime * speed, 2) << std::endl;
-					
-					if (distance < 0.95f * ((float)WIDTH/(float)HEIGHT) * (objects[i].mass + objects[j].mass) / (float)WIDTH || (force / objects[i].mass) * (sqrt(pow(objects[i].velocity.x, 2) + pow(objects[i].velocity.y, 2)) + 2 * deltatime * speed) * deltatime * speed > distance){
+						std::cout << "distance: " << distance << "\n1. " << (objects[i].radius + objects[j].radius) << "\n2." << ((force / objects[i].mass) * (sqrt(pow(objects[i].velocity.x, 2) + pow(objects[i].velocity.y, 2)) + deltatime * speed) * deltatime * speed) << std::endl;
 
 						force_x -= force * distance_x / distance;
 
@@ -475,8 +525,8 @@ int main() {
 
 						objects[k].massgain += objects[l].mass;
 
-						objects[k].position.x -= (objects[l].mass / objects[k].mass) * (objects[k].position.x - objects[l].position.x) / 2;
-						objects[k].position.y -= (objects[l].mass / objects[k].mass) * (objects[k].position.y - objects[l].position.y) / 2;
+						objects[k].position.x -= (objects[l].radius / objects[k].radius) * (objects[k].position.x - objects[l].position.x) / 2;
+						objects[k].position.y -= (objects[l].radius / objects[k].radius) * (objects[k].position.y - objects[l].position.y) / 2;
 
 
 						objects.erase(objects.begin() + l);
@@ -486,9 +536,9 @@ int main() {
 								i--;
 							j--;
 						}
-
+						
 					}
-
+					*/
 
 				}
 
@@ -507,8 +557,8 @@ int main() {
 				acceleration_x = force_x / objects[i].mass;
 				acceleration_y = force_y / objects[i].mass;
 
-				objects[i].velocity.x += acceleration_x * 2 * deltatime * speed;
-				objects[i].velocity.y += acceleration_y * 2 * deltatime * speed;
+				objects[i].velocity.x += acceleration_x * 1 * deltatime * speed;
+				objects[i].velocity.y += acceleration_y * 1 * deltatime * speed;
 
 				objects[i].position.x += objects[i].velocity.x * deltatime * speed;
 				objects[i].position.y += objects[i].velocity.y * deltatime * speed;
@@ -516,21 +566,21 @@ int main() {
 
 				//Övre Höger
 
-				ball[0] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
+				ball[0] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
 				ball[1] = scale * (objects[i].position.y + offset_y);
 
-				ball[3] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + 0.7f * (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
-				ball[4] = scale * (objects[i].position.y + offset_y) + 0.7f * (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+				ball[3] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + 0.7f * (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
+				ball[4] = scale * (objects[i].position.y + offset_y) + 0.7f * (scale * objects[i].radius + (3 / (float)HEIGHT));
 
 				ball[6] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
 				ball[7] = scale * (objects[i].position.y + offset_y);
 
 
 				ball[9] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
-				ball[10] = scale * (objects[i].position.y + offset_y) + (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+				ball[10] = scale * (objects[i].position.y + offset_y) + (scale * objects[i].radius + (3 / (float)HEIGHT));
 
-				ball[12] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + 0.7f * (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
-				ball[13] = scale * (objects[i].position.y + offset_y) + 0.7f * (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+				ball[12] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + 0.7f * (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
+				ball[13] = scale * (objects[i].position.y + offset_y) + 0.7f * (scale * objects[i].radius + (3 / (float)HEIGHT));
 
 				ball[15] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
 				ball[16] = scale * (objects[i].position.y + offset_y);
@@ -539,20 +589,20 @@ int main() {
 				//Övre Vänster
 
 				ball[18] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
-				ball[19] = scale * (objects[i].position.y + offset_y) + (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+				ball[19] = scale * (objects[i].position.y + offset_y) + (scale * objects[i].radius + (3 / (float)HEIGHT));
 
-				ball[21] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - 0.7f * (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
-				ball[22] = scale * (objects[i].position.y + offset_y) + 0.7f * (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+				ball[21] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - 0.7f * (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
+				ball[22] = scale * (objects[i].position.y + offset_y) + 0.7f * (scale * objects[i].radius + (3 / (float)HEIGHT));
 
 				ball[24] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
 				ball[25] = scale * (objects[i].position.y + offset_y);
 
 
-				ball[27] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
+				ball[27] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
 				ball[28] = scale * (objects[i].position.y + offset_y);
 
-				ball[30] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - 0.7f * (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
-				ball[31] = scale * (objects[i].position.y + offset_y) + 0.7f * (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+				ball[30] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - 0.7f * (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
+				ball[31] = scale * (objects[i].position.y + offset_y) + 0.7f * (scale * objects[i].radius + (3 / (float)HEIGHT));
 
 				ball[33] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
 				ball[34] = scale * (objects[i].position.y + offset_y);
@@ -560,21 +610,21 @@ int main() {
 
 				//Undre Vänster
 
-				ball[36] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
+				ball[36] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
 				ball[37] = scale * (objects[i].position.y + offset_y);
 
-				ball[39] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - 0.7f * (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
-				ball[40] = scale * (objects[i].position.y + offset_y) - 0.7f * (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+				ball[39] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - 0.7f * (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
+				ball[40] = scale * (objects[i].position.y + offset_y) - 0.7f * (scale * objects[i].radius + (3 / (float)HEIGHT));
 
 				ball[42] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
 				ball[43] = scale * (objects[i].position.y + offset_y);
 
 
 				ball[45] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
-				ball[46] = scale * (objects[i].position.y + offset_y) - (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+				ball[46] = scale * (objects[i].position.y + offset_y) - (scale * objects[i].radius + (3 / (float)HEIGHT));
 
-				ball[48] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - 0.7f * (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
-				ball[49] = scale * (objects[i].position.y + offset_y) - 0.7f * (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+				ball[48] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - 0.7f * (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
+				ball[49] = scale * (objects[i].position.y + offset_y) - 0.7f * (scale * objects[i].radius + (3 / (float)HEIGHT));
 
 				ball[51] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
 				ball[52] = scale * (objects[i].position.y + offset_y);
@@ -583,20 +633,20 @@ int main() {
 				//Undre Höger
 
 				ball[54] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
-				ball[55] = scale * (objects[i].position.y + offset_y) - (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+				ball[55] = scale * (objects[i].position.y + offset_y) - (scale * objects[i].radius + (3 / (float)HEIGHT));
 
-				ball[57] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + 0.7f * (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
-				ball[58] = scale * (objects[i].position.y + offset_y) - 0.7f * (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+				ball[57] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + 0.7f * (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
+				ball[58] = scale * (objects[i].position.y + offset_y) - 0.7f * (scale * objects[i].radius + (3 / (float)HEIGHT));
 
 				ball[60] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
 				ball[61] = scale * (objects[i].position.y + offset_y);
 
 
-				ball[63] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
+				ball[63] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
 				ball[64] = scale * (objects[i].position.y + offset_y);
 
-				ball[66] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + 0.7f * (scale * objects[i].mass / (float)WIDTH + (4 / (float)WIDTH));
-				ball[67] = scale * (objects[i].position.y + offset_y) - 0.7f * (scale * objects[i].mass / (float)HEIGHT + (4 / (float)HEIGHT));
+				ball[66] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + 0.7f * (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
+				ball[67] = scale * (objects[i].position.y + offset_y) - 0.7f * (scale * objects[i].radius + (3 / (float)HEIGHT));
 
 				ball[69] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
 				ball[70] = scale * (objects[i].position.y + offset_y);
@@ -604,7 +654,7 @@ int main() {
 				//ball[0] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
 				//ball[1] = scale * (objects[i].position.y + offset_y);
 
-				glPointSize(scale * objects[i].mass + 2.0f);
+				//glPointSize(scale * objects[i].radius + 2.0f);
 
 				glBindVertexArray(VAO_ball);
 				glBindBuffer(GL_ARRAY_BUFFER, VBO_ball);
@@ -676,11 +726,14 @@ int main() {
 		glDrawArrays(GL_POINTS, 0, 1);
 
 		glfwSwapBuffers(window);
-		deltatime = glfwGetTime() - stdtime;
+		//deltatime = glfwGetTime() - stdtime;
 
+
+		deltatime = 1000.0f;
+		frequenstime = glfwGetTime() - stdtime;
 
 		if(!(counter%30))
-			std::cout << "FPS:\t" << 1 / deltatime << "\t\tParticles:\t"<< objects.size() << std::endl;
+			std::cout << "FPS:\t" << 1 / frequenstime << "\t\tParticles:\t"<< objects.size() << std::endl;
 
 		counter++;
 
