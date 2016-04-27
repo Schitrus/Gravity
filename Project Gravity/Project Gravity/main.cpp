@@ -275,8 +275,6 @@ int main() {
 
 	bool pause = false;
 
-	//glColorMask(1, 1, 1, 0);
-
 	bool oneClick = false;
 
 	GLuint counter = 0;
@@ -499,7 +497,7 @@ int main() {
 
 					force_x += force * distance_x / distance;
 					force_y += force * distance_y / distance;
-					/*
+					
 					if (distance < (double)(objects[i].radius + objects[j].radius) || ((force / objects[i].mass) * (sqrt(pow(objects[i].velocity.x, 2) + pow(objects[i].velocity.y, 2)) + deltatime * speed) * deltatime * speed) > distance){
 
 						std::cout << "distance: " << distance << "\n1. " << (objects[i].radius + objects[j].radius) << "\n2." << ((force / objects[i].mass) * (sqrt(pow(objects[i].velocity.x, 2) + pow(objects[i].velocity.y, 2)) + deltatime * speed) * deltatime * speed) << std::endl;
@@ -538,7 +536,7 @@ int main() {
 						}
 						
 					}
-					*/
+					
 
 				}
 
