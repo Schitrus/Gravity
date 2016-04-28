@@ -17,13 +17,12 @@
 
 GLFWwindow* window;
 
-const GLuint WIDTH = 1280;
-const GLuint HEIGHT = 720;
+GLuint WIDTH = 1377;
+GLuint HEIGHT = 768;
 
 struct Point
 {
 	GLdouble mass;
-	GLdouble massgain = 0;
 
 	GLdouble density;
 
@@ -31,6 +30,7 @@ struct Point
 
 	glm::vec3 position;
 	glm::vec2 velocity = glm::vec2(0.0f, 0.0f);
+	glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 };
 
 double wheelpos;
@@ -44,6 +44,38 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 int main() {
 
+
+	//Introduction
+	std::cout << "#####PROJECT GRAVITY#####\n\nA Highschoolwork by Karl Andersson\n\n\n";
+
+
+	//Window dimensions
+	std::cout << "Enter the windows:\nWidth, ";
+	std::cin >> WIDTH;
+	std::cout << "Height, ";
+	std::cin >> HEIGHT;
+
+	//Choose Scenario
+
+	enum Scenario{
+		Solarsystem = 1,
+		Homogeneity,
+		Random
+	};
+
+	int scenario = 0;
+
+	std::cout << "##### Scenarios #####\n\n";
+	std::cout << "1.\tSolarsystem\n2.\tHomogeneity\n3.\tRandom";
+	for (int i = 0; i < 24 - sizeof(Scenario); i++) std::cout << "\n";
+
+	std::cin >> scenario;
+
+	if (scenario <= 0 || scenario > sizeof(Scenario) - 1)
+		scenario = 1;
+
+
+	//Initialize GLFW and Window
 	glfwInit();
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -52,21 +84,31 @@ int main() {
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 	glfwWindowHint(GLFW_SAMPLES, 2);
 
+	if (WIDTH > 1920 || HEIGHT > 1080 || WIDTH == 1 || HEIGHT == 1) {
+		WIDTH = 1920; HEIGHT = 1080;
+		window = glfwCreateWindow(WIDTH, HEIGHT, "Project Gravity", glfwGetPrimaryMonitor(), nullptr);
+	}
+	else if (WIDTH < 128 || HEIGHT < 128) {
+		WIDTH = 1377; HEIGHT = 768;
+		window = glfwCreateWindow(WIDTH, HEIGHT, "Project Gravity", nullptr, nullptr);
+	}
+	else
 	window = glfwCreateWindow(WIDTH, HEIGHT, "Project Gravity", nullptr, nullptr);
 
 	glfwMakeContextCurrent(window);
 
+
+	//Initialize GLEW
 	glewExperimental = GL_TRUE;
 	glewInit();
-
 	glViewport(0, 0, WIDTH, HEIGHT);
 
 
 	//Fps cap, 0 = no cap
 	glfwSwapInterval(0);
 
-	
-	GLfloat ball[3 * 3 * 8] = {
+	//Octogon shape for particles made out of 8 triangles
+	GLfloat octogon[3 * 3 * 8] = {
 		
 		 1.0f, 0.0f, 0.0f,
 		 0.7f, 0.7f, 0.0f,
@@ -104,144 +146,287 @@ int main() {
 		 0.0f, 0.0f, 0.0f,
 
 	};
-	
-	//Ball
 
-	GLuint VAO_ball;
-	glGenVertexArrays(1, &VAO_ball);
-	glBindVertexArray(VAO_ball);
+	//Vertex Array Object
+	GLuint VAO;
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
 
-	GLuint VBO_ball;
-	glGenBuffers(1, &VBO_ball);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_ball);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(ball), ball, GL_STATIC_DRAW);
+
+	//Vertex Buffer Object
+	GLuint VBO;
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(octogon), octogon, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
 
-
 	glBindVertexArray(0);
 
 
-
+	//Load Shaders vertex.glsl, fragment.glsl
 	Shader shader;
 	shader.load("vertex.glsl", "fragment.glsl");
 	shader.use();
 
 	GLuint Color = glGetUniformLocation(shader.get(), "in_color");
 
+	// Variables
+	GLfloat stdtime = 0.0f;
+	GLfloat frequenstime = 0.0f;
+	
+	GLboolean constanttime;
 
+	GLfloat deltaspeed;
+	GLfloat deltatime = 0;
+	GLdouble scale;
+
+	//////////////////////////////////
+	///// SCENARIOS
+	//////////////////////////
+
+	//Create vector of particles
+	std::vector<Point> particle;
+
+	switch (scenario) {
+	
+	case Solarsystem:
+
+		constanttime = false;
+
+		deltaspeed = 1000;
+
+		scale = pow(10, -11);
+
+		//SUN
+		particle.push_back(Point());
+		particle[0].mass = 1.98855 * pow(10, 30);
+		particle[0].position = glm::vec3(
+			0.0f,
+			0.0f,
+			0.0f);
+		particle[0].radius = 6.957 * pow(10, 8);
+		particle[0].velocity = glm::vec2(
+			0.0f,
+			0.0f);
+		particle[0].color = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
+
+		//MERCURY
+		particle.push_back(Point());
+		particle[1].mass = 3.3011 * pow(10, 23);
+		particle[1].position = glm::vec3(
+			4.60012 * pow(10, 10),
+			0.0f,
+			0.0f);
+		particle[1].radius = 2.4397 * pow(10, 6);
+		particle[1].velocity = glm::vec2(
+			0.0f,
+			5.898 * pow(10, 4));
+		particle[1].color = glm::vec4(0.6f, 0.55f, 0.45f, 1.0f);
+
+		//VENUS
+		particle.push_back(Point());
+		particle[2].mass = 4.8675 * pow(10, 24);
+		particle[2].position = glm::vec3(
+			1.0748 * pow(10, 11),
+			0.0f,
+			0.0f);
+		particle[2].radius = 6.0518 * pow(10, 6);
+		particle[2].velocity = glm::vec2(
+			0.0f,
+			3.526 * pow(10, 4));
+		particle[2].color = glm::vec4(0.85f, 0.81f, 0.48f, 1.0f);
+
+		//EARTH
+		particle.push_back(Point());
+		particle[3].mass = 5.9723 * pow(10, 24);
+		particle[3].position = glm::vec3(
+			1.4709 * pow(10, 11),
+			0.0f,
+			0.0f);
+		particle[3].radius = 6.378137 * pow(10, 6);
+		particle[3].velocity = glm::vec2(
+			0.0f,
+			3.029 * pow(10, 4));
+		particle[3].color = glm::vec4(0.28f, 0.46f, 0.77f, 1.0f);
+
+		//EARTH::MOON
+		particle.push_back(Point());
+		particle[4].mass = 7.346 * pow(10, 22);
+		particle[4].position = glm::vec3(
+			1.4709 * pow(10, 11) + 3.633 * pow(10, 8),
+			0.0f,
+			0.0f);
+		particle[4].radius = 1.7381 * pow(10, 6);
+		particle[4].velocity = glm::vec2(
+			0.0f,
+			3.029 * pow(10, 4) + 1.076 * pow(10, 3));
+		particle[4].color = glm::vec4(0.6f, 0.6f, 0.6f, 1.0f);
+
+		//MARS
+		particle.push_back(Point());
+		particle[5].mass = 6.4171 * pow(10, 23);
+		particle[5].position = glm::vec3(
+			2.0662 * pow(10, 11),
+			0.0f,
+			0.0f);
+		particle[5].radius = 3.3962 * pow(10, 6);
+		particle[5].velocity = glm::vec2(
+			0.0f,
+			2.65 * pow(10, 4));
+		particle[5].color = glm::vec4(0.75f, 0.39f, 0.27f, 1.0f);
+
+		//Jupiter
+		particle.push_back(Point());
+		particle[6].mass = 1.89819 * pow(10, 27);
+		particle[6].position = glm::vec3(
+			7.4052 * pow(10, 11),
+			0.0f,
+			0.0f);
+		particle[6].radius = 7.1492 * pow(10, 7);
+		particle[6].velocity = glm::vec2(
+			0.0f,
+			1.372 * pow(10, 4));
+		particle[6].color = glm::vec4(0.72f, 0.52f, 0.18f, 1.0f);
+
+		//Saturn
+		particle.push_back(Point());
+		particle[7].mass = 5.6834 * pow(10, 26);
+		particle[7].position = glm::vec3(
+			1.35255 * pow(10, 12),
+			0.0f,
+			0.0f);
+		particle[7].radius = 6.0268 * pow(10, 7);
+		particle[7].velocity = glm::vec2(
+			0.0f,
+			1.018 * pow(10, 4));
+		particle[7].color = glm::vec4(0.88f, 0.86f, 0.39f, 1.0f);
+
+		//Uranus
+		particle.push_back(Point());
+		particle[8].mass = 8.6813 * pow(10, 25);
+		particle[8].position = glm::vec3(
+			2.7413 * pow(10, 12),
+			0.0f,
+			0.0f);
+		particle[8].radius = 2.5559 * pow(10, 7);
+		particle[8].velocity = glm::vec2(
+			0.0f,
+			7.11 * pow(10, 3));
+		particle[8].color = glm::vec4(0.57f, 0.84f, 0.95f, 1.0f);
+
+		//Neptune
+		particle.push_back(Point());
+		particle[9].mass = 1.02413 * pow(10, 26);
+		particle[9].position = glm::vec3(
+			4.44445 * pow(10, 12),
+			0.0f,
+			0.0f);
+		particle[9].radius = 2.4764 * pow(10, 7);
+		particle[9].velocity = glm::vec2(
+			0.0f,
+			5.5 * pow(10, 3));
+		particle[9].color = glm::vec4(0.07f, 0.29f, 0.80f, 1.0f);
+
+		break;
+
+
+	case Homogeneity:
+
+		deltaspeed = 10000.0f;
+
+		constanttime = true;
+
+		scale = 0.9f;
+
+		for (int i = 0; i < 9; i++) {
+			for (int j = 0; j < 9; j++) {
+				particle.push_back(Point());
+				particle[i * 9 + j].mass = 1.0f;
+				particle[i * 9 + j].position = glm::vec3(1.0f - (0.25f)*i, 1.0f - (0.25f)*j, 1.0f);
+				particle[i * 9 + j].radius = 0.01f;
+			}
+		}
+
+		break;
+
+
+	case Random:
+
+		deltaspeed = 10000.0f;
+
+		constanttime = true;
+
+		scale = 0.5f;
+
+		srand(time(NULL));
+
+		for (int i = 0; i < 75; i++) {
+			particle.push_back(Point());
+			particle[i].mass = (float)(rand() % 100 + 1)/200;
+			particle[i].position = glm::vec3((float)(rand() % 4000) / 500 - 4, (float)(rand() % 4000) / 500 - 4, 1.0f);
+			particle[i].radius = (float)(rand() % 100 + 1)/25 * particle[i].mass * 0.01f;
+			particle[i].color = glm::vec4((float)(rand() % 100) / 100, (float)(rand() % 100) / 100, (float)(rand() % 100) / 100, 1.0f);
+
+		}
+
+		break;
+
+	default:
+
+		deltaspeed = 1;
+
+		constanttime = true;
+
+		scale = 1.0f;
+
+		particle.push_back(Point());
+		particle[0].mass = 1.0f;
+		particle[0].position = glm::vec3(0.0f, 0.0f, 0.0f);
+		particle[0].radius = 1.0f;
+		particle[0].velocity = glm::vec2(0.0f, 0.0f);
+		particle[0].color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+		break;
+	};
 
 	// Le Physics
 
-	GLfloat stdtime = 0.0f;
-
-	GLfloat deltatime = 0.0f;
-
-	GLfloat frequenstime = 0.0f;
-
 	GLuint numPoints = 190;
 
-	std::vector<Point> objects;
 
-	srand(time(NULL));
-	
-	//SUN
-	objects.push_back(Point());
-	objects[0].mass = 1.98855 * pow(10, 30);
-	objects[0].position = glm::vec3(
-		0.0f, 
-		0.0f, 
-		0.0f);
-	objects[0].radius = 6.957 * pow(10, 8);
-	objects[0].velocity = glm::vec2(
-		0.0f,
-		0.0f);
 
-	//MERCURY
-	objects.push_back(Point());
-	objects[1].mass = 3.3011 * pow(10, 23);
-	objects[1].position = glm::vec3(
-		4.60012 * pow(10, 10), 
-		0.0f, 
-		0.0f);
-	objects[1].radius = 2.4397 * pow(10, 6);
-	objects[1].velocity = glm::vec2(
-		0.0f,
-		5.898 * pow(10, 4));
 
-	//VENUS
-	objects.push_back(Point());
-	objects[2].mass = 4.8675 * pow(10, 24);
-	objects[2].position = glm::vec3(
-		1.0748 * pow(10, 11),
-		0.0f,
-		0.0f);
-	objects[2].radius = 6.0518 * pow(10, 6);
-	objects[2].velocity = glm::vec2(
-		0.0f,
-		3.526 * pow(10, 4));
 
-	//EARTH
-	objects.push_back(Point());
-	objects[3].mass = 5.9723 * pow(10, 24);
-	objects[3].position = glm::vec3(
-		1.4709 * pow(10, 11),
-		0.0f,
-		0.0f);
-	objects[3].radius = 6.378137 * pow(10, 6);
-	objects[3].velocity = glm::vec2(
-		0.0f,
-		3.029 * pow(10, 4));
 
-	//EARTH::MOON
-	objects.push_back(Point());
-	objects[4].mass = 7.346 * pow(10, 22);
-	objects[4].position = glm::vec3(
-		1.4709 * pow(10, 11) + 3.633 * pow(10, 8),
-		0.0f,
-		0.0f);
-	objects[4].radius = 1.7381 * pow(10, 6);
-	objects[4].velocity = glm::vec2(
-		0.0f,
-		3.029 * pow(10, 4) + 1.076 * pow(10, 3));
-
-	//MARS
-	objects.push_back(Point());
-	objects[5].mass = 6.4171 * pow(10, 23);
-	objects[5].position = glm::vec3(
-		2.0662 * pow(10, 11),
-		0.0f,
-		0.0f);
-	objects[5].radius = 3.3962 * pow(10, 6);
-	objects[5].velocity = glm::vec2(
-		0.0f,
-		2.65 * pow(10, 4));
-
+	/*
 	//MARS::PHOBOS
-	objects.push_back(Point());
-	objects[6].mass = 1.06 * pow(10, 16);
-	objects[6].position = glm::vec3(
+	particle.push_back(Point());
+	particle[6].mass = 1.06 * pow(10, 16);
+	particle[6].position = glm::vec3(
 		2.0662 * pow(10, 11) + 9.378 * pow(10, 6),
 		0.0f,
 		0.0f);
-	objects[6].radius = 1.11 * pow(10, 4);
-	objects[6].velocity = glm::vec2(
+	particle[6].radius = 1.11 * pow(10, 4);
+	particle[6].velocity = glm::vec2(
 		0.0f,
 		2.65 * pow(10, 4) + 2.1385 * pow(10, 3));
+	particle[6].color = glm::vec4(0.68f, 0.68f, 0.68f, 1.0f);
 
 	//MARS::DEIMOS
-	objects.push_back(Point());
-	objects[7].mass = 2.4 * pow(10, 15);
-	objects[7].position = glm::vec3(
+	particle.push_back(Point());
+	particle[7].mass = 2.4 * pow(10, 15);
+	particle[7].position = glm::vec3(
 		2.0662 * pow(10, 11) + 2.3459 * pow(10, 7),
 		0.0f,
 		0.0f);
-	objects[7].radius = 7.8 * pow(10, 3);
-	objects[7].velocity = glm::vec2(
+	particle[7].radius = 7.8 * pow(10, 3);
+	particle[7].velocity = glm::vec2(
 		0.0f,
 		2.65 * pow(10, 4) + 1.3513 * pow(10, 3));
-		
+	particle[7].color = glm::vec4(0.7f, 0.7f, 0.7f, 1.0f);
+		*/
 	GLfloat Gravity = 6.6743 * pow(10, -11);
 
 	//Point settings
@@ -277,12 +462,11 @@ int main() {
 	GLdouble offset_x = 0.0f;
 	GLdouble offset_y = 0.0f;
 
-	GLdouble scale = pow(10, -11);
-
 	GLfloat view_angle = 0.0f;
 
 	enum DisplayColor
 	{
+		DisplayVisible,
 		DisplayMass,
 		DisplayVelocity,
 		DisplayAcceleration,
@@ -290,7 +474,7 @@ int main() {
 
 	bool ColorHit = false;
 
-	int dColor = DisplayMass;
+	int dColor = DisplayVisible;
 
 
 	bool isDead = false;
@@ -298,6 +482,9 @@ int main() {
 	glfwSetScrollCallback(window, scroll_callback);
 
 	while (!glfwWindowShouldClose(window)) {
+
+		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+			glfwSetWindowShouldClose(window, GL_TRUE);
 
 
 		double xpos_1;
@@ -322,8 +509,8 @@ int main() {
 				2 * xpos_2 / WIDTH - 1, 1 - 2 * ypos_2 / HEIGHT, 1.0f
 			};
 
-			glBindVertexArray(VAO_ball);
-			glBindBuffer(GL_ARRAY_BUFFER, VBO_ball);
+			glBindVertexArray(VAO);
+			glBindBuffer(GL_ARRAY_BUFFER, VBO);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(line), line, GL_STATIC_DRAW);
 
 			glUniform4fv(Color, 1, &glm::vec4(0.5f, 0.5f, 0.5f, 1.0f)[0]);
@@ -341,14 +528,13 @@ int main() {
 
 
 
-				objects.push_back(Point());
-				objects[objects.size() - 1].mass = 0.5f;
-				//objects[objects.size() - 1].massgain = 0.0f;
-				objects[objects.size() - 1].position.x = (((float)WIDTH / HEIGHT) * (2 * xpos_1 / WIDTH - 1) / scale - offset_x);
-				objects[objects.size() - 1].position.y = (1 - (2 * ypos_1 / HEIGHT)) / scale - offset_y;
+				particle.push_back(Point());
+				particle[particle.size() - 1].mass = 0.5f;
+				particle[particle.size() - 1].position.x = (((float)WIDTH / HEIGHT) * (2 * xpos_1 / WIDTH - 1) / scale - offset_x);
+				particle[particle.size() - 1].position.y = (1 - (2 * ypos_1 / HEIGHT)) / scale - offset_y;
 
-				objects[objects.size() - 1].velocity.x = (xpos_2 - xpos_1) * deltatime * speed / (10 * objects[objects.size() - 1].mass);
-				objects[objects.size() - 1].velocity.y = (ypos_1 - ypos_2) * deltatime * speed / (10 * objects[objects.size() - 1].mass);
+				particle[particle.size() - 1].velocity.x = (xpos_2 - xpos_1) * deltatime * speed / (10 * particle[particle.size() - 1].mass);
+				particle[particle.size() - 1].velocity.y = (ypos_1 - ypos_2) * deltatime * speed / (10 * particle[particle.size() - 1].mass);
 
 				numPoints++;
 				oneClick = false;
@@ -407,7 +593,8 @@ int main() {
 			wheelpos = (0.04f * 1 / (speed+0.25f)) + 1;
 		}
 
-
+		//offset_x = -particle[3].position.x;
+		//offset_y = -particle[3].position.y;
 
 		if(wheelpos != 0 && speed > 0)
 			speed *= wheelpos;
@@ -428,14 +615,14 @@ int main() {
 
 		}
 
-		ball[0] =  0.75f;
-		ball[1] = -0.75f;
+		octogon[0] =  0.75f;
+		octogon[1] = -0.75f;
 
 		glPointSize(5);
 
-		glBindVertexArray(VAO_ball);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO_ball);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(ball), ball, GL_STATIC_DRAW);
+		glBindVertexArray(VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(octogon), octogon, GL_STATIC_DRAW);
 
 		if (speed == 0)
 			glUniform4fv(Color, 1, &glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)[0]);
@@ -456,7 +643,7 @@ int main() {
 		//glClear(GL_COLOR_BUFFER_BIT);
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		for (int i = 0; i < objects.size(); i++) {
+		for (int i = 0; i < particle.size(); i++) {
 
 
 			GLfloat acceleration_x, acceleration_y;
@@ -477,25 +664,25 @@ int main() {
 
 
 
-			for (int j = 0; j < objects.size(); j++) {
+			for (int j = 0; j < particle.size(); j++) {
 				if (i != j) {
 
 
 					isDead = false;
-					distance_x = (objects[j].position.x - objects[i].position.x);
-					distance_y = (objects[j].position.y - objects[i].position.y);
+					distance_x = (particle[j].position.x - particle[i].position.x);
+					distance_y = (particle[j].position.y - particle[i].position.y);
 
 
 					distance = sqrt(distance_x * distance_x + distance_y * distance_y);
 
-					force = Gravity * (objects[i].mass * objects[j].mass) / (distance * distance);
+					force = Gravity * (particle[i].mass * particle[j].mass) / (distance * distance);
 
 					force_x += force * distance_x / distance;
 					force_y += force * distance_y / distance;
 					
-					if (distance < (double)(objects[i].radius + objects[j].radius) || ((force / objects[i].mass) * (sqrt(pow(objects[i].velocity.x, 2) + pow(objects[i].velocity.y, 2)) + deltatime * speed) * deltatime * speed) > distance){
+					if (distance < (double)(particle[i].radius + particle[j].radius) || ((force / particle[i].mass) * (sqrt(pow(particle[i].velocity.x, 2) + pow(particle[i].velocity.y, 2)) + deltatime * speed) * deltatime * speed) > distance){
 
-						std::cout << "distance: " << distance << "\n1. " << (objects[i].radius + objects[j].radius) << "\n2." << ((force / objects[i].mass) * (sqrt(pow(objects[i].velocity.x, 2) + pow(objects[i].velocity.y, 2)) + deltatime * speed) * deltatime * speed) << std::endl;
+						//std::cout << "distance: " << distance << "\n1. " << (particle[i].radius + particle[j].radius) << "\n2." << ((force / particle[i].mass) * (sqrt(pow(particle[i].velocity.x, 2) + pow(particle[i].velocity.y, 2)) + deltatime * speed) * deltatime * speed) << std::endl;
 
 						force_x -= force * distance_x / distance;
 
@@ -503,26 +690,29 @@ int main() {
 
 						int k = i;
 						int l = j;
-						if (objects[i].mass <= objects[j].mass) {
+						if (particle[i].radius <= particle[j].radius) {
 							std::swap(k, l);
 
 							i--;
 
 							isDead = true;
 
-							j = objects.size() - 1;
+							j = particle.size() - 1;
 						}
 
-						objects[k].velocity.x += objects[l].velocity.x * objects[l].mass / objects[k].mass;
-						objects[k].velocity.y += objects[l].velocity.y * objects[l].mass / objects[k].mass;
+						particle[k].position.x -= (particle[l].radius / particle[k].radius) * (particle[k].position.x - particle[l].position.x) / 2;
+						particle[k].position.y -= (particle[l].radius / particle[k].radius) * (particle[k].position.y - particle[l].position.y) / 2;
 
-						objects[k].massgain += objects[l].mass;
+						particle[k].velocity.x += particle[l].velocity.x * particle[l].mass / particle[k].mass;
+						particle[k].velocity.y += particle[l].velocity.y * particle[l].mass / particle[k].mass;
 
-						objects[k].position.x -= (objects[l].radius / objects[k].radius) * (objects[k].position.x - objects[l].position.x) / 2;
-						objects[k].position.y -= (objects[l].radius / objects[k].radius) * (objects[k].position.y - objects[l].position.y) / 2;
+						particle[k].radius = sqrt( (particle[k].mass + particle[l].mass) * (particle[k].mass / (3.14f * pow(particle[k].radius, 2) ) ) / 3.14f);
+						particle[k].mass += particle[l].mass;
 
 
-						objects.erase(objects.begin() + l);
+
+
+						particle.erase(particle.begin() + l);
 
 						if (!isDead) {
 							if (k > l)
@@ -539,128 +729,120 @@ int main() {
 
 			if (!isDead) {
 
-				
+				acceleration_x = force_x / particle[i].mass;
+				acceleration_y = force_y / particle[i].mass;
 
-				objects[i].mass += objects[i].massgain * deltatime * speed * 7;
-				objects[i].massgain *= 1 - deltatime * speed * 4;
+				particle[i].velocity.x += acceleration_x * 1 * deltatime * speed;
+				particle[i].velocity.y += acceleration_y * 1 * deltatime * speed;
 
-				if (objects[i].massgain < 0.1f)
-					objects[i].massgain = 0;
-
-				acceleration_x = force_x / objects[i].mass;
-				acceleration_y = force_y / objects[i].mass;
-
-				objects[i].velocity.x += acceleration_x * 1 * deltatime * speed;
-				objects[i].velocity.y += acceleration_y * 1 * deltatime * speed;
-
-				objects[i].position.x += objects[i].velocity.x * deltatime * speed;
-				objects[i].position.y += objects[i].velocity.y * deltatime * speed;
+				particle[i].position.x += particle[i].velocity.x * deltatime * speed;
+				particle[i].position.y += particle[i].velocity.y * deltatime * speed;
 
 
 				//Övre Höger
 
-				ball[0] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
-				ball[1] = scale * (objects[i].position.y + offset_y);
+				octogon[0] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + (scale * particle[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
+				octogon[1] = scale * (particle[i].position.y + offset_y);
 
-				ball[3] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + 0.7f * (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
-				ball[4] = scale * (objects[i].position.y + offset_y) + 0.7f * (scale * objects[i].radius + (3 / (float)HEIGHT));
+				octogon[3] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + 0.7f * (scale * particle[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
+				octogon[4] = scale * (particle[i].position.y + offset_y) + 0.7f * (scale * particle[i].radius + (3 / (float)HEIGHT));
 
-				ball[6] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
-				ball[7] = scale * (objects[i].position.y + offset_y);
+				octogon[6] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+				octogon[7] = scale * (particle[i].position.y + offset_y);
 
 
-				ball[9] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
-				ball[10] = scale * (objects[i].position.y + offset_y) + (scale * objects[i].radius + (3 / (float)HEIGHT));
+				octogon[9] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+				octogon[10] = scale * (particle[i].position.y + offset_y) + (scale * particle[i].radius + (3 / (float)HEIGHT));
 
-				ball[12] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + 0.7f * (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
-				ball[13] = scale * (objects[i].position.y + offset_y) + 0.7f * (scale * objects[i].radius + (3 / (float)HEIGHT));
+				octogon[12] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + 0.7f * (scale * particle[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
+				octogon[13] = scale * (particle[i].position.y + offset_y) + 0.7f * (scale * particle[i].radius + (3 / (float)HEIGHT));
 
-				ball[15] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
-				ball[16] = scale * (objects[i].position.y + offset_y);
+				octogon[15] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+				octogon[16] = scale * (particle[i].position.y + offset_y);
 
 
 				//Övre Vänster
 
-				ball[18] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
-				ball[19] = scale * (objects[i].position.y + offset_y) + (scale * objects[i].radius + (3 / (float)HEIGHT));
+				octogon[18] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+				octogon[19] = scale * (particle[i].position.y + offset_y) + (scale * particle[i].radius + (3 / (float)HEIGHT));
 
-				ball[21] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - 0.7f * (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
-				ball[22] = scale * (objects[i].position.y + offset_y) + 0.7f * (scale * objects[i].radius + (3 / (float)HEIGHT));
+				octogon[21] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - 0.7f * (scale * particle[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
+				octogon[22] = scale * (particle[i].position.y + offset_y) + 0.7f * (scale * particle[i].radius + (3 / (float)HEIGHT));
 
-				ball[24] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
-				ball[25] = scale * (objects[i].position.y + offset_y);
+				octogon[24] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+				octogon[25] = scale * (particle[i].position.y + offset_y);
 
 
-				ball[27] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
-				ball[28] = scale * (objects[i].position.y + offset_y);
+				octogon[27] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - (scale * particle[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
+				octogon[28] = scale * (particle[i].position.y + offset_y);
 
-				ball[30] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - 0.7f * (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
-				ball[31] = scale * (objects[i].position.y + offset_y) + 0.7f * (scale * objects[i].radius + (3 / (float)HEIGHT));
+				octogon[30] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - 0.7f * (scale * particle[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
+				octogon[31] = scale * (particle[i].position.y + offset_y) + 0.7f * (scale * particle[i].radius + (3 / (float)HEIGHT));
 
-				ball[33] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
-				ball[34] = scale * (objects[i].position.y + offset_y);
+				octogon[33] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+				octogon[34] = scale * (particle[i].position.y + offset_y);
 
 
 				//Undre Vänster
 
-				ball[36] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
-				ball[37] = scale * (objects[i].position.y + offset_y);
+				octogon[36] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - (scale * particle[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
+				octogon[37] = scale * (particle[i].position.y + offset_y);
 
-				ball[39] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - 0.7f * (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
-				ball[40] = scale * (objects[i].position.y + offset_y) - 0.7f * (scale * objects[i].radius + (3 / (float)HEIGHT));
+				octogon[39] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - 0.7f * (scale * particle[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
+				octogon[40] = scale * (particle[i].position.y + offset_y) - 0.7f * (scale * particle[i].radius + (3 / (float)HEIGHT));
 
-				ball[42] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
-				ball[43] = scale * (objects[i].position.y + offset_y);
+				octogon[42] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+				octogon[43] = scale * (particle[i].position.y + offset_y);
 
 
-				ball[45] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
-				ball[46] = scale * (objects[i].position.y + offset_y) - (scale * objects[i].radius + (3 / (float)HEIGHT));
+				octogon[45] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+				octogon[46] = scale * (particle[i].position.y + offset_y) - (scale * particle[i].radius + (3 / (float)HEIGHT));
 
-				ball[48] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - 0.7f * (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
-				ball[49] = scale * (objects[i].position.y + offset_y) - 0.7f * (scale * objects[i].radius + (3 / (float)HEIGHT));
+				octogon[48] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - 0.7f * (scale * particle[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
+				octogon[49] = scale * (particle[i].position.y + offset_y) - 0.7f * (scale * particle[i].radius + (3 / (float)HEIGHT));
 
-				ball[51] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
-				ball[52] = scale * (objects[i].position.y + offset_y);
+				octogon[51] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+				octogon[52] = scale * (particle[i].position.y + offset_y);
 
 
 				//Undre Höger
 
-				ball[54] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
-				ball[55] = scale * (objects[i].position.y + offset_y) - (scale * objects[i].radius + (3 / (float)HEIGHT));
+				octogon[54] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+				octogon[55] = scale * (particle[i].position.y + offset_y) - (scale * particle[i].radius + (3 / (float)HEIGHT));
 
-				ball[57] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + 0.7f * (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
-				ball[58] = scale * (objects[i].position.y + offset_y) - 0.7f * (scale * objects[i].radius + (3 / (float)HEIGHT));
+				octogon[57] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + 0.7f * (scale * particle[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
+				octogon[58] = scale * (particle[i].position.y + offset_y) - 0.7f * (scale * particle[i].radius + (3 / (float)HEIGHT));
 
-				ball[60] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
-				ball[61] = scale * (objects[i].position.y + offset_y);
+				octogon[60] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+				octogon[61] = scale * (particle[i].position.y + offset_y);
 
 
-				ball[63] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
-				ball[64] = scale * (objects[i].position.y + offset_y);
+				octogon[63] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + (scale * particle[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
+				octogon[64] = scale * (particle[i].position.y + offset_y);
 
-				ball[66] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + 0.7f * (scale * objects[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
-				ball[67] = scale * (objects[i].position.y + offset_y) - 0.7f * (scale * objects[i].radius + (3 / (float)HEIGHT));
+				octogon[66] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + 0.7f * (scale * particle[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
+				octogon[67] = scale * (particle[i].position.y + offset_y) - 0.7f * (scale * particle[i].radius + (3 / (float)HEIGHT));
 
-				ball[69] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
-				ball[70] = scale * (objects[i].position.y + offset_y);
+				octogon[69] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
+				octogon[70] = scale * (particle[i].position.y + offset_y);
 
-				//ball[0] = scale * (objects[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
-				//ball[1] = scale * (objects[i].position.y + offset_y);
-
-				//glPointSize(scale * objects[i].radius + 2.0f);
-
-				glBindVertexArray(VAO_ball);
-				glBindBuffer(GL_ARRAY_BUFFER, VBO_ball);
-				glBufferData(GL_ARRAY_BUFFER, sizeof(ball), ball, GL_STATIC_DRAW);
+				glBindVertexArray(VAO);
+				glBindBuffer(GL_ARRAY_BUFFER, VBO);
+				glBufferData(GL_ARRAY_BUFFER, sizeof(octogon), octogon, GL_STATIC_DRAW);
 
 
 				switch (dColor)
 				{
+				case DisplayVisible:
+					glUniform4fv(Color, 1, &particle[i].color[0]);
+
+					break;
+
 				case DisplayMass:
 					glUniform4fv(Color, 1, &glm::vec4(
-						0.3f + objects[i].mass * 0.75f,
-						0.1f + objects[i].mass * 0.03f,
-						0.0f + objects[i].mass * 0.2f - pow(objects[i].mass, 2),
+						0.3f + particle[i].mass * 0.75f,
+						0.1f + particle[i].mass * 0.03f,
+						0.0f + particle[i].mass * 0.2f - pow(particle[i].mass, 2),
 						1.0f
 						)[0]);
 
@@ -668,9 +850,9 @@ int main() {
 
 				case DisplayVelocity:
 					glUniform4fv(Color, 1, &glm::vec4(
-						5 * sqrt(pow(objects[i].velocity.x, 2) + pow(objects[i].velocity.y, 2)),
-						-0.8f + 5 * sqrt(pow(objects[i].velocity.x, 2) + pow(objects[i].velocity.y, 2)),
-						1.0f - 5 * sqrt(pow(objects[i].velocity.x, 2) + pow(objects[i].velocity.y, 2)),
+						5 * sqrt(pow(particle[i].velocity.x, 2) + pow(particle[i].velocity.y, 2)),
+						-0.8f + 5 * sqrt(pow(particle[i].velocity.x, 2) + pow(particle[i].velocity.y, 2)),
+						1.0f - 5 * sqrt(pow(particle[i].velocity.x, 2) + pow(particle[i].velocity.y, 2)),
 						1.0f
 						)[0]);
 
@@ -699,19 +881,16 @@ int main() {
 			}
 		}
 
-		ball[0] = 0.0f;
-		ball[1] = 0.0f;
-
-		//ball[0] = 0.0f - objects[0].position.x;
-		//ball[1] = 0.0f - objects[0].position.y;
+		octogon[0] = 0.0f;
+		octogon[1] = 0.0f;
 
 		glPointSize(WIDTH);
 
-		glBindVertexArray(VAO_ball);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO_ball);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(ball), ball, GL_STATIC_DRAW);
+		glBindVertexArray(VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(octogon), octogon, GL_STATIC_DRAW);
 
-		if (deltatime > 0.0f)
+		if (counter > 0)
 			glUniform4fv(Color, 1, &glm::vec4(0.0f, 0.0f, 0.0f, 0.05f)[0]);
 		else
 			glUniform4fv(Color, 1, &glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)[0]);
@@ -719,18 +898,22 @@ int main() {
 		glDrawArrays(GL_POINTS, 0, 1);
 
 		glfwSwapBuffers(window);
-		//deltatime = glfwGetTime() - stdtime;
+		//deltaspeed = glfwGetTime() - stdtime;
 
-
-		deltatime = 1000.0f;
 		frequenstime = glfwGetTime() - stdtime;
 
-		if(!(counter%30))
-			std::cout << "FPS:\t" << 1 / frequenstime << "\t\tParticles:\t"<< objects.size() << std::endl;
+		if (constanttime)
+			deltatime = deltaspeed * frequenstime;
+		else
+			deltatime = deltaspeed;
+
+		if(!(counter % (int)(1 / frequenstime)))
+			std::cout << "FPS:\t" << 1 / frequenstime << "\t\tParticles:\t"<< particle.size() << std::endl;
 
 		counter++;
-
 	}
+
+	glfwTerminate();
 
 
 	std::cout << "Press any key to continue. . ." << std::endl;
