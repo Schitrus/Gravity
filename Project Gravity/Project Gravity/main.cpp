@@ -97,6 +97,8 @@ int main() {
 
 	glfwMakeContextCurrent(window);
 
+	glfwSetScrollCallback(window, scroll_callback);
+
 
 	//Initialize GLEW
 	glewExperimental = GL_TRUE;
@@ -172,7 +174,10 @@ int main() {
 
 	GLuint Color = glGetUniformLocation(shader.get(), "in_color");
 
-	// Variables
+	////////////////////////////////
+	///// VARIABLES
+	/////////////////
+
 	GLfloat stdtime = 0.0f;
 	GLfloat frequenstime = 0.0f;
 	
@@ -181,6 +186,32 @@ int main() {
 	GLfloat deltaspeed;
 	GLfloat deltatime = 0;
 	GLdouble scale;
+
+	GLdouble offset_x = 0.0f;
+	GLdouble offset_y = 0.0f;
+
+	enum DisplayColor
+	{
+		DisplayVisible,
+		DisplayMass,
+		DisplayVelocity,
+		DisplayAcceleration,
+	};
+
+	int dColor = DisplayVisible;
+
+	float speed = 0.07f;
+	float pausespeed = 0.0f;
+	bool pause = false;
+
+	bool oneClick = false;
+	bool ColorHit = false;
+	bool isDead = false;
+
+	GLuint counter = 0;
+
+	//The Gravity Constant
+	GLfloat Gravity = 6.6743 * pow(10, -11);
 
 	//////////////////////////////////
 	///// SCENARIOS
@@ -375,7 +406,7 @@ int main() {
 
 	default:
 
-		deltaspeed = 1;
+		deltaspeed = 1.0f;
 
 		constanttime = true;
 
@@ -391,107 +422,38 @@ int main() {
 		break;
 	};
 
-	// Le Physics
-
-	GLuint numPoints = 190;
-
-
-
-
-
-
-	/*
-	//MARS::PHOBOS
-	particle.push_back(Point());
-	particle[6].mass = 1.06 * pow(10, 16);
-	particle[6].position = glm::vec3(
-		2.0662 * pow(10, 11) + 9.378 * pow(10, 6),
-		0.0f,
-		0.0f);
-	particle[6].radius = 1.11 * pow(10, 4);
-	particle[6].velocity = glm::vec2(
-		0.0f,
-		2.65 * pow(10, 4) + 2.1385 * pow(10, 3));
-	particle[6].color = glm::vec4(0.68f, 0.68f, 0.68f, 1.0f);
-
-	//MARS::DEIMOS
-	particle.push_back(Point());
-	particle[7].mass = 2.4 * pow(10, 15);
-	particle[7].position = glm::vec3(
-		2.0662 * pow(10, 11) + 2.3459 * pow(10, 7),
-		0.0f,
-		0.0f);
-	particle[7].radius = 7.8 * pow(10, 3);
-	particle[7].velocity = glm::vec2(
-		0.0f,
-		2.65 * pow(10, 4) + 1.3513 * pow(10, 3));
-	particle[7].color = glm::vec4(0.7f, 0.7f, 0.7f, 1.0f);
-		*/
-	GLfloat Gravity = 6.6743 * pow(10, -11);
-
-	//Point settings
-
-	GLuint pointSize = 3.0f;
-
-	GLuint lengthSize = 2.0f;
-
-	glEnable(GL_POINT_SPRITE);
-
-	glEnable(GL_ALPHA_TEST);
-	glAlphaFunc(GL_NOTEQUAL, 0);
+	//Draw settings
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glEnable(GL_POINT_SMOOTH);
+	GLuint pointSize = 3.0f;
+	GLuint lengthSize = 2.0f;
 
 	glPointSize(pointSize);
-
 	glLineWidth(lengthSize);
 
-	float speed = 0.07f;
-	
-	float pausespeed = 0.0f;
-
-	bool pause = false;
-
-	bool oneClick = false;
-
-	GLuint counter = 0;
-
-	GLdouble offset_x = 0.0f;
-	GLdouble offset_y = 0.0f;
-
-	GLfloat view_angle = 0.0f;
-
-	enum DisplayColor
-	{
-		DisplayVisible,
-		DisplayMass,
-		DisplayVelocity,
-		DisplayAcceleration,
-	};
-
-	bool ColorHit = false;
-
-	int dColor = DisplayVisible;
-
-
-	bool isDead = false;
-
-	glfwSetScrollCallback(window, scroll_callback);
+	////////////////////////////////////////
+	/////// GAME LOOOP
+	////////////////////////////////////
 
 	while (!glfwWindowShouldClose(window)) {
 
+		//Update stdtime
+		stdtime = glfwGetTime();
+		glfwPollEvents();
+
+
+		// Close program
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 			glfwSetWindowShouldClose(window, GL_TRUE);
-
 
 		double xpos_1;
 		double ypos_1;
 
-		//std::cout << numPoints << std::endl;
-
+		////////////////////////////
+		////Left Mouse Button add particle
+		/////////////////
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS || oneClick) {
 
 			if (!oneClick)
@@ -519,14 +481,7 @@ int main() {
 
 			glDrawArrays(GL_LINES, 0, 2);
 
-
-
-
 			if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
-
-
-
-
 
 				particle.push_back(Point());
 				particle[particle.size() - 1].mass = 0.5f;
@@ -536,12 +491,14 @@ int main() {
 				particle[particle.size() - 1].velocity.x = (xpos_2 - xpos_1) * deltatime * speed / (10 * particle[particle.size() - 1].mass);
 				particle[particle.size() - 1].velocity.y = (ypos_1 - ypos_2) * deltatime * speed / (10 * particle[particle.size() - 1].mass);
 
-				numPoints++;
 				oneClick = false;
 			}
 
 		}
 
+		/////////////////////
+		///// Color Mode
+		//////////
 		if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS && !ColorHit) {
 			dColor++;
 			if (dColor >= sizeof(DisplayColor))
@@ -552,6 +509,10 @@ int main() {
 		else if (glfwGetKey(window, GLFW_KEY_U) == GLFW_RELEASE && ColorHit)
 			ColorHit = false;
 
+
+		////////////////////
+		//// Move Screen
+		//////////////
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 			offset_x += frequenstime / scale;
 			glClear(GL_COLOR_BUFFER_BIT);
@@ -568,15 +529,10 @@ int main() {
 			offset_y += frequenstime / scale;
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
-		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-			view_angle -= frequenstime;
-			glClear(GL_COLOR_BUFFER_BIT);
-		}
-		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-			view_angle += frequenstime;
-			glClear(GL_COLOR_BUFFER_BIT);
-		}
 
+		/////////////////
+		//// ZOOM
+		////////////
 		if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
 			scale *= 1 + frequenstime;
 			glClear(GL_COLOR_BUFFER_BIT);
@@ -586,6 +542,10 @@ int main() {
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 		
+
+		///////////////////
+		//// Speed
+		/////////////////
 		if (wheelpos < 0) {
 			wheelpos = 1 - (0.03f * (speed+2));
 		}
@@ -593,18 +553,16 @@ int main() {
 			wheelpos = (0.04f * 1 / (speed+0.25f)) + 1;
 		}
 
-		//offset_x = -particle[3].position.x;
-		//offset_y = -particle[3].position.y;
-
 		if(wheelpos != 0 && speed > 0)
 			speed *= wheelpos;
 
-		//std::cout << speed << "\t" << wheelpos << std::endl;
-
 		wheelpos = 0;
 
+
+		////////////////////
+		//// Pause
+		//////////////////
 		if ((glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) && !pause) {
-			//std::cout << "pause: " << pause << std::endl;
 
   			std::swap(speed, pausespeed);
 			pause = true;
@@ -615,6 +573,9 @@ int main() {
 
 		}
 
+		///////////////////
+		//// Speed indicator
+		////////////////
 		octogon[0] =  0.75f;
 		octogon[1] = -0.75f;
 
@@ -633,16 +594,11 @@ int main() {
 		else
 			glUniform4fv(Color, 1, &glm::vec4(1.0f, 0.0f-4.5f+speed, 1.0f, 0.5f-4+speed)[0]);
 
-
 		glDrawArrays(GL_POINTS, 0, 1);
 
-
-		stdtime = glfwGetTime();
-		glfwPollEvents();
-
-		//glClear(GL_COLOR_BUFFER_BIT);
-
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		///////////////////////////////
+		////// Calculate particles
+		////////////////////////////////
 		for (int i = 0; i < particle.size(); i++) {
 
 
@@ -663,10 +619,11 @@ int main() {
 			force_y = 0.0f;
 
 
-
+			///////////////////////////////
+			/////// Compare particles
+			////////////////////////////////
 			for (int j = 0; j < particle.size(); j++) {
 				if (i != j) {
-
 
 					isDead = false;
 					distance_x = (particle[j].position.x - particle[i].position.x);
@@ -679,13 +636,13 @@ int main() {
 
 					force_x += force * distance_x / distance;
 					force_y += force * distance_y / distance;
-					
+
+					////////////////////////////////
+					////// Merge Partcles
+					///////////////////////
 					if (distance < (double)(particle[i].radius + particle[j].radius) || ((force / particle[i].mass) * (sqrt(pow(particle[i].velocity.x, 2) + pow(particle[i].velocity.y, 2)) + deltatime * speed) * deltatime * speed) > distance){
 
-						//std::cout << "distance: " << distance << "\n1. " << (particle[i].radius + particle[j].radius) << "\n2." << ((force / particle[i].mass) * (sqrt(pow(particle[i].velocity.x, 2) + pow(particle[i].velocity.y, 2)) + deltatime * speed) * deltatime * speed) << std::endl;
-
 						force_x -= force * distance_x / distance;
-
 						force_y -= force * distance_y / distance;
 
 						int k = i;
@@ -706,7 +663,7 @@ int main() {
 						particle[k].velocity.x += particle[l].velocity.x * particle[l].mass / particle[k].mass;
 						particle[k].velocity.y += particle[l].velocity.y * particle[l].mass / particle[k].mass;
 
-						particle[k].radius = sqrt( (particle[k].mass + particle[l].mass) * (particle[k].mass / (3.14f * pow(particle[k].radius, 2) ) ) / 3.14f);
+						particle[k].radius += sqrt(pow(particle[l].radius, 2) * 3.14f) / 3.14f;
 						particle[k].mass += particle[l].mass;
 
 
@@ -728,7 +685,9 @@ int main() {
 			}
 
 			if (!isDead) {
-
+				///////////////////////
+				//// Update position
+				////////////////////////
 				acceleration_x = force_x / particle[i].mass;
 				acceleration_y = force_y / particle[i].mass;
 
@@ -739,7 +698,7 @@ int main() {
 				particle[i].position.y += particle[i].velocity.y * deltatime * speed;
 
 
-				//Övre Höger
+				/////////Upper Right
 
 				octogon[0] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) + (scale * particle[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
 				octogon[1] = scale * (particle[i].position.y + offset_y);
@@ -761,7 +720,7 @@ int main() {
 				octogon[16] = scale * (particle[i].position.y + offset_y);
 
 
-				//Övre Vänster
+				///////////Upper Left
 
 				octogon[18] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
 				octogon[19] = scale * (particle[i].position.y + offset_y) + (scale * particle[i].radius + (3 / (float)HEIGHT));
@@ -783,7 +742,7 @@ int main() {
 				octogon[34] = scale * (particle[i].position.y + offset_y);
 
 
-				//Undre Vänster
+				///////////Lower Left
 
 				octogon[36] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH) - (scale * particle[i].radius * ((float)HEIGHT / WIDTH) + (3 / (float)WIDTH));
 				octogon[37] = scale * (particle[i].position.y + offset_y);
@@ -805,7 +764,7 @@ int main() {
 				octogon[52] = scale * (particle[i].position.y + offset_y);
 
 
-				//Undre Höger
+				//////////Lower Right
 
 				octogon[54] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
 				octogon[55] = scale * (particle[i].position.y + offset_y) - (scale * particle[i].radius + (3 / (float)HEIGHT));
@@ -826,6 +785,9 @@ int main() {
 				octogon[69] = scale * (particle[i].position.x + offset_x) * ((float)HEIGHT / WIDTH);
 				octogon[70] = scale * (particle[i].position.y + offset_y);
 
+				//////////////////////////////////
+				///////// Draw Particles
+				//////////////////////
 				glBindVertexArray(VAO);
 				glBindBuffer(GL_ARRAY_BUFFER, VBO);
 				glBufferData(GL_ARRAY_BUFFER, sizeof(octogon), octogon, GL_STATIC_DRAW);
@@ -881,6 +843,9 @@ int main() {
 			}
 		}
 
+		////////////////////////////
+		/////// Draw trail
+		/////////////////
 		octogon[0] = 0.0f;
 		octogon[1] = 0.0f;
 
@@ -897,9 +862,10 @@ int main() {
 
 		glDrawArrays(GL_POINTS, 0, 1);
 
+		///////////////////////////
+		///// Update deltatime
+		////////////////////////
 		glfwSwapBuffers(window);
-		//deltaspeed = glfwGetTime() - stdtime;
-
 		frequenstime = glfwGetTime() - stdtime;
 
 		if (constanttime)
@@ -912,10 +878,11 @@ int main() {
 
 		counter++;
 	}
-
+	//close window
 	glfwTerminate();
 
 
+	//wait for input to close cmd
 	std::cout << "Press any key to continue. . ." << std::endl;
 	int tmp;
 	std::cin >> tmp;
