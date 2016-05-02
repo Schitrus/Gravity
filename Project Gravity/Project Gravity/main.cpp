@@ -60,18 +60,19 @@ int main() {
 	enum Scenario{
 		Solarsystem = 1,
 		Homogeneity,
-		Random
+		Random,
+		Massive
 	};
 
 	int scenario = 0;
 
 	std::cout << "##### Scenarios #####\n\n";
-	std::cout << "1.\tSolarsystem\n2.\tHomogeneity\n3.\tRandom";
-	for (int i = 0; i < 24 - sizeof(Scenario); i++) std::cout << "\n";
+	std::cout << "1.\tSolarsystem\n2.\tHomogeneity\n3.\tRandom\n4.\tMassive";
+	for (int i = 0; i < 24 - 5; i++) std::cout << "\n";
 
 	std::cin >> scenario;
 
-	if (scenario <= 0 || scenario > sizeof(Scenario) - 1)
+	if (scenario <= 0 || scenario >  4)
 		scenario = 1;
 
 
@@ -200,7 +201,7 @@ int main() {
 
 	int dColor = DisplayVisible;
 
-	float speed = 0.07f;
+	float speed = 1.0f;
 	float pausespeed = 0.0f;
 	bool pause = false;
 
@@ -224,9 +225,9 @@ int main() {
 	
 	case Solarsystem:
 
-		constanttime = false;
+		constanttime = true;
 
-		deltaspeed = 1000;
+		deltaspeed = 100000.0f;
 
 		scale = pow(10, -11);
 
@@ -242,6 +243,7 @@ int main() {
 			0.0f,
 			0.0f);
 		particle[0].color = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
+		particle[0].density = particle[0].mass / (3.14f * pow(particle[0].radius, 2));
 
 		//MERCURY
 		particle.push_back(Point());
@@ -255,6 +257,7 @@ int main() {
 			0.0f,
 			5.898 * pow(10, 4));
 		particle[1].color = glm::vec4(0.6f, 0.55f, 0.45f, 1.0f);
+		particle[1].density = particle[1].mass / (3.14f * pow(particle[1].radius, 2));
 
 		//VENUS
 		particle.push_back(Point());
@@ -268,6 +271,7 @@ int main() {
 			0.0f,
 			3.526 * pow(10, 4));
 		particle[2].color = glm::vec4(0.85f, 0.81f, 0.48f, 1.0f);
+		particle[2].density = particle[2].mass / (3.14f * pow(particle[2].radius, 2));
 
 		//EARTH
 		particle.push_back(Point());
@@ -281,6 +285,7 @@ int main() {
 			0.0f,
 			3.029 * pow(10, 4));
 		particle[3].color = glm::vec4(0.28f, 0.46f, 0.77f, 1.0f);
+		particle[3].density = particle[3].mass / (3.14f * pow(particle[3].radius, 2));
 
 		//EARTH::MOON
 		particle.push_back(Point());
@@ -294,6 +299,7 @@ int main() {
 			0.0f,
 			3.029 * pow(10, 4) + 1.076 * pow(10, 3));
 		particle[4].color = glm::vec4(0.6f, 0.6f, 0.6f, 1.0f);
+		particle[4].density = particle[4].mass / (3.14f * pow(particle[4].radius, 2));
 
 		//MARS
 		particle.push_back(Point());
@@ -307,6 +313,7 @@ int main() {
 			0.0f,
 			2.65 * pow(10, 4));
 		particle[5].color = glm::vec4(0.75f, 0.39f, 0.27f, 1.0f);
+		particle[5].density = particle[5].mass / (3.14f * pow(particle[5].radius, 2));
 
 		//Jupiter
 		particle.push_back(Point());
@@ -320,6 +327,7 @@ int main() {
 			0.0f,
 			1.372 * pow(10, 4));
 		particle[6].color = glm::vec4(0.72f, 0.52f, 0.18f, 1.0f);
+		particle[6].density = particle[6].mass / (3.14f * pow(particle[6].radius, 2));
 
 		//Saturn
 		particle.push_back(Point());
@@ -333,6 +341,7 @@ int main() {
 			0.0f,
 			1.018 * pow(10, 4));
 		particle[7].color = glm::vec4(0.88f, 0.86f, 0.39f, 1.0f);
+		particle[7].density = particle[7].mass / (3.14f * pow(particle[7].radius, 2));
 
 		//Uranus
 		particle.push_back(Point());
@@ -346,6 +355,7 @@ int main() {
 			0.0f,
 			7.11 * pow(10, 3));
 		particle[8].color = glm::vec4(0.57f, 0.84f, 0.95f, 1.0f);
+		particle[8].density = particle[8].mass / (3.14f * pow(particle[8].radius, 2));
 
 		//Neptune
 		particle.push_back(Point());
@@ -359,6 +369,7 @@ int main() {
 			0.0f,
 			5.5 * pow(10, 3));
 		particle[9].color = glm::vec4(0.07f, 0.29f, 0.80f, 1.0f);
+		particle[9].density = particle[9].mass / (3.14f * pow(particle[9].radius, 2));
 
 		break;
 
@@ -377,6 +388,7 @@ int main() {
 				particle[i * 9 + j].mass = 1.0f;
 				particle[i * 9 + j].position = glm::vec3(1.0f - (0.25f)*i, 1.0f - (0.25f)*j, 1.0f);
 				particle[i * 9 + j].radius = 0.01f;
+				particle[i * 9 + j].density = particle[i * 9 + j].mass / (3.14f * pow(particle[i * 9 + j].radius, 2));
 			}
 		}
 
@@ -389,18 +401,50 @@ int main() {
 
 		constanttime = true;
 
-		scale = 0.5f;
+		scale = 0.2f;
 
 		srand(time(NULL));
 
-		for (int i = 0; i < 75; i++) {
+		for (int i = 0; i < 175; i++) {
 			particle.push_back(Point());
 			particle[i].mass = (float)(rand() % 100 + 1)/200;
 			particle[i].position = glm::vec3((float)(rand() % 4000) / 500 - 4, (float)(rand() % 4000) / 500 - 4, 1.0f);
 			particle[i].radius = (float)(rand() % 100 + 1)/25 * particle[i].mass * 0.01f;
 			particle[i].color = glm::vec4((float)(rand() % 100) / 100, (float)(rand() % 100) / 100, (float)(rand() % 100) / 100, 1.0f);
+			particle[i].density = particle[i].mass / (3.14f * pow(particle[i].radius, 2));
 
 		}
+
+		break;
+
+	case Massive:
+
+		deltaspeed = 100.0f;
+
+		constanttime = true;
+
+		scale = 0.1f;
+
+		srand(time(NULL));
+
+		for (int i = 0; i < 200; i++) {
+			particle.push_back(Point());
+			particle[i].mass = (float)(rand() % 100 + 1) / 200;
+			particle[i].position = glm::vec3((float)(rand() % 10000) / 500 - 10, (float)(rand() % 10000) / 500 - 10, 1.0f);
+			particle[i].radius = (float)(rand() % 100 + 1) / 25 * particle[i].mass * 0.01f;
+			particle[i].color = glm::vec4((float)(rand() % 100) / 100, (float)(rand() % 100) / 100, (float)(rand() % 100) / 100, 1.0f);
+			particle[i].velocity.x = 0.00005f * ((float)(rand()%100)/50 - 1);
+			particle[i].velocity.y = 0.00005f * ((float)(rand() % 100) / 50 - 1);
+			particle[i].density = particle[i].mass / (3.14f * pow(particle[i].radius, 2));
+
+		}
+
+		particle.push_back(Point());
+		particle[particle.size() - 1].mass = 400.0f;
+		particle[particle.size() - 1].position = glm::vec3(0.0f, 0.0f, 1.0f);
+		particle[particle.size() - 1].radius = 0.00001f;
+		particle[particle.size() - 1].color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		particle[particle.size() - 1].density = particle[particle.size() - 1].mass / (3.14f * pow(particle[particle.size() - 1].radius, 2));
 
 		break;
 
@@ -418,6 +462,7 @@ int main() {
 		particle[0].radius = 1.0f;
 		particle[0].velocity = glm::vec2(0.0f, 0.0f);
 		particle[0].color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		particle[0].density = particle[0].mass / (3.14f * pow(particle[0].radius, 2));
 
 		break;
 	};
@@ -647,7 +692,7 @@ int main() {
 
 						int k = i;
 						int l = j;
-						if (particle[i].radius <= particle[j].radius) {
+						if (particle[i].mass <= particle[j].mass) {
 							std::swap(k, l);
 
 							i--;
@@ -657,14 +702,20 @@ int main() {
 							j = particle.size() - 1;
 						}
 
-						particle[k].position.x -= (particle[l].radius / particle[k].radius) * (particle[k].position.x - particle[l].position.x) / 2;
-						particle[k].position.y -= (particle[l].radius / particle[k].radius) * (particle[k].position.y - particle[l].position.y) / 2;
-
+						if (particle[l].radius < particle[k].radius) {
+							particle[k].position.x -= (particle[l].radius / particle[k].radius) * (particle[k].position.x - particle[l].position.x) / 2;
+							particle[k].position.y -= (particle[l].radius / particle[k].radius) * (particle[k].position.y - particle[l].position.y) / 2;
+						}
+						else {
+							particle[k].position.x -= (particle[k].radius / particle[l].radius) * (particle[k].position.x - particle[l].position.x) / 2;
+							particle[k].position.y -= (particle[k].radius / particle[l].radius) * (particle[k].position.y - particle[l].position.y) / 2;
+						}
 						particle[k].velocity.x += particle[l].velocity.x * particle[l].mass / particle[k].mass;
 						particle[k].velocity.y += particle[l].velocity.y * particle[l].mass / particle[k].mass;
 
-						particle[k].radius += sqrt(pow(particle[l].radius, 2) * 3.14f) / 3.14f;
+						//particle[k].radius += sqrt(pow(particle[l].radius, 2) * 3.14f) / 3.14f;
 						particle[k].mass += particle[l].mass;
+						particle[k].radius = sqrt((particle[k].mass / particle[k].density) / 3.14f);
 
 
 
@@ -697,6 +748,12 @@ int main() {
 				particle[i].position.x += particle[i].velocity.x * deltatime * speed;
 				particle[i].position.y += particle[i].velocity.y * deltatime * speed;
 
+				//////Follow particle
+
+				if (true) {
+					offset_x = -particle[particle.size() - 1].position.x;
+					offset_y = -particle[particle.size() - 1].position.y;
+				}
 
 				/////////Upper Right
 
@@ -856,7 +913,7 @@ int main() {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(octogon), octogon, GL_STATIC_DRAW);
 
 		if (counter > 0)
-			glUniform4fv(Color, 1, &glm::vec4(0.0f, 0.0f, 0.0f, 0.05f)[0]);
+			glUniform4fv(Color, 1, &glm::vec4(0.0f, 0.0f, 0.0f, 0.04f)[0]);
 		else
 			glUniform4fv(Color, 1, &glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)[0]);
 
@@ -865,6 +922,9 @@ int main() {
 		///////////////////////////
 		///// Update deltatime
 		////////////////////////
+
+		counter++;
+
 		glfwSwapBuffers(window);
 		frequenstime = glfwGetTime() - stdtime;
 
@@ -873,8 +933,8 @@ int main() {
 		else
 			deltatime = deltaspeed;
 
-		if(!(counter % (int)(1 / frequenstime)))
-			std::cout << "FPS:\t" << 1 / frequenstime << "\t\tParticles:\t"<< particle.size() << std::endl;
+		//if(!(counter % (int)(1 / (frequenstime + pow(10, -1)))))
+		//std::cout << "FPS:\t" << 1 / frequenstime << "\t\tParticles:\t"<< particle.size() << "\t\tSpeed:\t" << speed << std::endl;
 
 		counter++;
 	}
