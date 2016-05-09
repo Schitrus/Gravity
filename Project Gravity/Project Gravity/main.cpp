@@ -61,18 +61,19 @@ int main() {
 		Solarsystem = 1,
 		Homogeneity,
 		Random,
-		Massive
+		Massive,
+		Orbits
 	};
 
 	int scenario = 0;
 
 	std::cout << "##### Scenarios #####\n\n";
-	std::cout << "1.\tSolarsystem\n2.\tHomogeneity\n3.\tRandom\n4.\tMassive";
-	for (int i = 0; i < 24 - 5; i++) std::cout << "\n";
+	std::cout << "1.\tSolarsystem\n2.\tHomogeneity\n3.\tRandom\n4.\tMassive\n5.\tOrbits";
+	for (int i = 0; i < 24 - 6; i++) std::cout << "\n";
 
 	std::cin >> scenario;
 
-	if (scenario <= 0 || scenario >  4)
+	if (scenario <= 0 || scenario >  5)
 		scenario = 1;
 
 
@@ -376,7 +377,7 @@ int main() {
 
 	case Homogeneity:
 
-		deltaspeed = 1000.0f;
+		deltaspeed = 100.0f;
 
 		constanttime = true;
 
@@ -445,6 +446,32 @@ int main() {
 		particle[particle.size() - 1].radius = 0.00001f;
 		particle[particle.size() - 1].color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		particle[particle.size() - 1].density = particle[particle.size() - 1].mass / (3.14f * pow(particle[particle.size() - 1].radius, 2));
+
+		break;
+
+	case Orbits:
+
+		deltaspeed = 1.0f;
+
+		constanttime = true;
+
+		scale = 8.0f;
+		particle.push_back(Point());
+		particle[0].mass = 2000.0f;
+		particle[0].position = glm::vec3(0.0f, 0.0f, 1.0f);
+		particle[0].radius = 0.00001f;
+		//particle[particle.size() - 1].color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		particle[0].density = particle[0].mass / (3.14f * pow(particle[0].radius, 2));
+
+		for (int i = 1; i <= 100; i++) {
+			particle.push_back(Point());
+			particle[i].mass = 0.001f;
+			particle[i].position = glm::vec3(0.0f, pow(-1, i) * (0.01f + 0.001f * i), 1.0f);
+			particle[i].radius = 0.00001f;
+			//particle[particle.size() - 1].color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+			particle[i].density = particle[i].mass / (3.14f * pow(particle[i].radius, 2));
+			particle[i].velocity = glm::vec2(pow(-1, i) * Gravity * sqrt(2) * pow(particle[0].mass, 2) / sqrt(abs(particle[i].position.y)), 0.0f);
+		}
 
 		break;
 
