@@ -376,7 +376,7 @@ int main() {
 
 	case Homogeneity:
 
-		deltaspeed = 10000.0f;
+		deltaspeed = 1000.0f;
 
 		constanttime = true;
 
@@ -387,7 +387,7 @@ int main() {
 				particle.push_back(Point());
 				particle[i * 9 + j].mass = 1.0f;
 				particle[i * 9 + j].position = glm::vec3(1.0f - (0.25f)*i, 1.0f - (0.25f)*j, 1.0f);
-				particle[i * 9 + j].radius = 0.01f;
+				particle[i * 9 + j].radius = 0.0001f;
 				particle[i * 9 + j].density = particle[i * 9 + j].mass / (3.14f * pow(particle[i * 9 + j].radius, 2));
 			}
 		}
@@ -419,7 +419,7 @@ int main() {
 
 	case Massive:
 
-		deltaspeed = 100.0f;
+		deltaspeed = 300.0f;
 
 		constanttime = true;
 
@@ -750,10 +750,10 @@ int main() {
 
 				//////Follow particle
 
-				if (true) {
-					offset_x = -particle[particle.size() - 1].position.x;
-					offset_y = -particle[particle.size() - 1].position.y;
-				}
+				//if (true) {
+				//	offset_x = -particle[particle.size() - 1].position.x;
+				//	offset_y = -particle[particle.size() - 1].position.y;
+				//}
 
 				/////////Upper Right
 
