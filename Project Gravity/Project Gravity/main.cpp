@@ -382,19 +382,35 @@ int main() {
 		constanttime = true;
 
 		scale = 0.9f;
-
+		
 		for (int i = 0; i < 9; i++) {
 			for (int j = 0; j < 9; j++) {
 				particle.push_back(Point());
 				particle[i * 9 + j].mass = 1.0f;
 				particle[i * 9 + j].position = glm::vec3(1.0f - (0.25f)*i, 1.0f - (0.25f)*j, 1.0f);
-				particle[i * 9 + j].radius = 0.0001f;
+				particle[i * 9 + j].radius = 0.025f;
 				particle[i * 9 + j].density = particle[i * 9 + j].mass / (3.14f * pow(particle[i * 9 + j].radius, 2));
 			}
 		}
-
+		
+		/*
+		for (int i = 0; i < 9; i++) {
+			for (int j = 0; j < 9; j++) {
+				particle.push_back(Point());
+				particle[i * 9 + j].mass = 1.0f;
+				if (!(j % 2)) {
+					particle[i * 9 + j].position = glm::vec3(1.0f - (0.25f)*i, 1.0f - (0.2f)*j, 1.0f);
+				}
+				else {
+					particle[i * 9 + j].position = glm::vec3(1.125f - (0.25f)*i, 1.0f - (0.2f)*j, 1.0f);
+				}
+				particle[i * 9 + j].radius = 0.025f;
+				particle[i * 9 + j].density = particle[i * 9 + j].mass / (3.14f * pow(particle[i * 9 + j].radius, 2));
+			}
+		}
+		*/
+		
 		break;
-
 
 	case Random:
 
