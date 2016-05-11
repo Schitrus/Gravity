@@ -388,7 +388,7 @@ int main() {
 				particle.push_back(Point());
 				particle[i * 9 + j].mass = 1.0f;
 				particle[i * 9 + j].position = glm::vec3(1.0f - (0.25f)*i, 1.0f - (0.25f)*j, 1.0f);
-				particle[i * 9 + j].radius = 0.025f;
+				particle[i * 9 + j].radius = 0.00001f;
 				particle[i * 9 + j].density = particle[i * 9 + j].mass / (3.14f * pow(particle[i * 9 + j].radius, 2));
 			}
 		}
@@ -414,7 +414,7 @@ int main() {
 
 	case Random:
 
-		deltaspeed = 10000.0f;
+		deltaspeed = 1000.0f;
 
 		constanttime = true;
 
